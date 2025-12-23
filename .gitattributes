@@ -47,7 +47,7 @@
 *.mb filter=lfs diff=lfs merge=lfs -text
 *.ma filter=lfs diff=lfs merge=lfs -text
 *.3ds filter=lfs diff=lfs merge=lfs -text
-*.dfx filter=lfs diff=lfs merge=lfs -text
+*.dxf filter=lfs diff=lfs merge=lfs -text
 *.c4d filter=lfs diff=lfs merge=lfs -text
 *.lwo filter=lfs diff=lfs merge=lfs -text
 *.lwo2 filter=lfs diff=lfs merge=lfs -text
