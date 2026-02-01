@@ -2,7 +2,9 @@
   <Project Path="Flexalon.Editor.csproj" />
   <Project Path="Flexalon.csproj" />
   <Project Path="Flexalon.Samples.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Flexalon.Samples.Editor.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Assembly-CSharp-Editor-firstpass.csproj" />
+  <Project Path="Assembly-CSharp-firstpass.csproj" />
 </Solution>
