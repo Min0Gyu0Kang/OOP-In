@@ -5,3 +5,10 @@ PrefabImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 188100
+  packageName: Low Poly Farm Pack Lite
+  packageVersion: 1.02
+  assetPath: Assets/LowPolyFarmLite/Prefabs/Terrain_01.prefab
+  uploadId: 582058
