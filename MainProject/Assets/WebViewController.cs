@@ -144,7 +144,7 @@ public class WebViewController : MonoBehaviour
             //// editor
             //separated: false
             );
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
         webViewObject.bitmapRefreshCycle = 1;
         webViewObject.devicePixelRatio = 1;  // 1 or 2
 #endif
