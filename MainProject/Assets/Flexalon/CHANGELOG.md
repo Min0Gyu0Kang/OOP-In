@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 4.4.2
+
+- Unity 6.5 compatibility fixes for Flexalon and Flexalon Templates.
+
 ## Version 4.4.1
 
 - Unity 6 Compile Fix to Flexalon Random Modifier

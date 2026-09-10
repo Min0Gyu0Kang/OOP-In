@@ -18,7 +18,7 @@
       "hash": "2fcc17957823f2494b7b1f7ade92c0fb56f4adb1"
     },
     "com.unity.2d.common": {
-      "version": "12.0.2",
+      "version": "12.0.4",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -114,7 +114,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.dt.app-ui": {
-      "version": "2.1.6",
+      "version": "2.1.12",
       "depth": 0,
       "source": "registry",
       "dependencies": {
