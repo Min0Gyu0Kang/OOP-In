@@ -40,7 +40,16 @@ public class WebViewController : MonoBehaviour
     [Tooltip("Strip ad / sidebar elements from the page once it finishes loading.")]
     public bool removeAds = true;
 
+    [Tooltip("Load the page as soon as the scene starts. Leave OFF when something else " +
+             "opens the webview on demand (e.g. WebViewTrigger on the guide cube) - the " +
+             "native webview is then not created and no network request is made until " +
+             "Load() is called.")]
+    public bool loadOnStart = false;
+
     private Coroutine _loadCoroutine;
+
+    // Guards Load() so repeated triggers don't Init()/LoadURL() the webview twice.
+    private bool _loadStarted;
 
     // Below this, treat the panel's on-screen rect as degenerate rather than asking the
     // native plugin for a near-zero bitmap (mirrors the guard in WebViewObject.Update()).
@@ -54,6 +63,13 @@ public class WebViewController : MonoBehaviour
     // otherwise this component's own static-margin/boundsPanel logic would race it and
     // cause a one-frame full-screen flash before the window's chrome corrects it.
     private bool hasOwnWindow;
+
+    // The window on this GameObject, if any - closing it resets the page to Url.
+    private WebViewWindow ownWindow;
+
+    // The URL actually handed to LoadURL for Url (http as-is, or the file:// copy of a
+    // StreamingAssets page), kept so a reset can navigate straight back to it.
+    private string _homeUrl;
 
     // Injected on every page load. Ad slots are filled in asynchronously by the ad
     // network well after onLoaded fires, so a one-shot pass would miss most of them -
@@ -96,15 +112,73 @@ public class WebViewController : MonoBehaviour
 
     private void Awake()
     {
-        hasOwnWindow = GetComponent<WebViewWindow>() != null;
+        ownWindow = GetComponent<WebViewWindow>();
+        hasOwnWindow = ownWindow != null;
+        if (hasOwnWindow)
+        {
+            // Closing the window is a hard restart: the next open starts on Url again, not
+            // on whatever page was last browsed to. Minimizing keeps the current page.
+            ownWindow.Closed += ResetToHome;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (ownWindow != null)
+        {
+            ownWindow.Closed -= ResetToHome;
+        }
     }
 
     private void Start() {
+        if (loadOnStart)
+        {
+            Load();
+        }
+    }
+
+    /// <summary>True once <see cref="Load"/> has run.</summary>
+    public bool IsLoaded { get { return _loadStarted; } }
+
+    /// <summary>
+    /// Creates the native webview and loads <see cref="Url"/>. Idempotent - only the
+    /// first call does any work, so a trigger can call it on every click. Until this
+    /// runs, no native webview exists and the page is never fetched.
+    /// </summary>
+    public void Load()
+    {
+        if (_loadStarted)
+        {
+            return;
+        }
+        _loadStarted = true;
+
         _loadCoroutine = StartCoroutine(LoadWebView(Url));
         if (!hasOwnWindow)
         {
+            // With a WebViewWindow present, it owns visibility instead.
             SetVisibility(true);
         }
+    }
+
+    /// <summary>
+    /// Navigates back to <see cref="Url"/>, discarding wherever the user browsed to. Does
+    /// nothing until the first load has resolved the home URL - that load is already
+    /// heading there.
+    /// </summary>
+    public void ResetToHome()
+    {
+        if (webViewObject == null || string.IsNullOrEmpty(_homeUrl))
+        {
+            return;
+        }
+        webViewObject.LoadURL(_homeUrl);
+    }
+
+    private void LoadHome(string url)
+    {
+        _homeUrl = url;
+        webViewObject.LoadURL(url);
     }
 
     private void OnDisable()
@@ -318,7 +392,7 @@ public class WebViewController : MonoBehaviour
 
 #if !UNITY_WEBPLAYER && !UNITY_WEBGL
         if (Url.StartsWith("http")) {
-            webViewObject.LoadURL(Url.Replace(" ", "%20"));
+            LoadHome(Url.Replace(" ", "%20"));
         } else {
             var exts = new string[]{
                 ".jpg",
@@ -346,16 +420,16 @@ public class WebViewController : MonoBehaviour
                 }
                 System.IO.File.WriteAllBytes(dst, result);
                 if (ext == ".html") {
-                    webViewObject.LoadURL("file://" + dst.Replace(" ", "%20"));
+                    LoadHome("file://" + dst.Replace(" ", "%20"));
                     break;
                 }
             }
         }
 #else
         if (Url.StartsWith("http")) {
-            webViewObject.LoadURL(Url.Replace(" ", "%20"));
+            LoadHome(Url.Replace(" ", "%20"));
         } else {
-            webViewObject.LoadURL("StreamingAssets/" + Url.Replace(" ", "%20"));
+            LoadHome("StreamingAssets/" + Url.Replace(" ", "%20"));
         }
 #endif
         yield break;

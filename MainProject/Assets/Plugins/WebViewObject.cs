@@ -77,6 +77,8 @@ public class WebViewObject : MonoBehaviour
     bool mMarginRelativeComputed;
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
     public GameObject canvas;
+    int mScreenWidthComputed;
+    int mScreenHeightComputed;
     Image bg;
     IntPtr webView;
     Rect rect;
@@ -912,7 +914,15 @@ public class WebViewObject : MonoBehaviour
             && mt == mMarginTopComputed
             && mr == mMarginRightComputed
             && mb == mMarginBottomComputed
-            && r == mMarginRelativeComputed)
+            && r == mMarginRelativeComputed
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            // The desktop rect's width/height derive from the screen size, so the same
+            // margins on a resized screen (e.g. a maximized window going fullscreen) still
+            // need a new rect - otherwise the page keeps drawing at the old size.
+            && Screen.width == mScreenWidthComputed
+            && Screen.height == mScreenHeightComputed
+#endif
+            )
         {
             return;
         }
@@ -921,6 +931,10 @@ public class WebViewObject : MonoBehaviour
         mMarginRightComputed = mr;
         mMarginBottomComputed = mb;
         mMarginRelativeComputed = r;
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+        mScreenWidthComputed = Screen.width;
+        mScreenHeightComputed = Screen.height;
+#endif
 
 #if UNITY_EDITOR_LINUX || UNITY_SERVER
         //TODO: UNSUPPORTED
@@ -1679,8 +1693,13 @@ public class WebViewObject : MonoBehaviour
             bg.rectTransform.anchorMax = Vector2.zero;
             bg.rectTransform.pivot = Vector2.zero;
             bg.rectTransform.position = rect.min;
-            bg.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.size.x);
-            bg.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.size.y);
+            // rect is in screen pixels but the size is applied in canvas units; on a scaled
+            // canvas (e.g. Scale With Screen Size) the unscaled size grows past the page and
+            // covers any UI around it.
+            Canvas bgCanvas = bg.canvas;
+            float scale = (bgCanvas != null && bgCanvas.scaleFactor > 0f) ? bgCanvas.scaleFactor : 1f;
+            bg.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.size.x / scale);
+            bg.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.size.y / scale);
         }
     }
 
