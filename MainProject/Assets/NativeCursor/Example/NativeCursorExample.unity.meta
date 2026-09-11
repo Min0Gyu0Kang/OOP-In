@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 94662372405e6ef42877500f39bc56be
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 220347
+  packageName: Native Cursor
+  packageVersion: 1.1.3
+  assetPath: Assets/NativeCursor/Example/NativeCursorExample.unity
+  uploadId: 718824

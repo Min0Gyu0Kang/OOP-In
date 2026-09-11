@@ -1648,9 +1648,12 @@ public class WebViewObject : MonoBehaviour
         bool refreshBitmap = (Time.frameCount % bitmapRefreshCycle == 0);
         _CWebViewPlugin_Update(webView, refreshBitmap, devicePixelRatio);
         if (refreshBitmap) {
-            {
-                var w = _CWebViewPlugin_BitmapWidth(webView);
-                var h = _CWebViewPlugin_BitmapHeight(webView);
+            var w = _CWebViewPlugin_BitmapWidth(webView);
+            var h = _CWebViewPlugin_BitmapHeight(webView);
+            // NOTE: the native offscreen surface (e.g. WebView2, still spinning up) can
+            // report 0x0 for a few frames before its first paint; Texture2D throws on a
+            // non-positive dimension, so just skip this frame's render instead.
+            if (w > 0 && h > 0) {
                 if (texture == null || texture.width != w || texture.height != h) {
                     bool isLinearSpace = QualitySettings.activeColorSpace == ColorSpace.Linear;
                     texture = new Texture2D(w, h, TextureFormat.RGBA32, false, !isLinearSpace);
@@ -1658,13 +1661,13 @@ public class WebViewObject : MonoBehaviour
                     texture.wrapMode = TextureWrapMode.Clamp;
                     textureDataBuffer = new byte[w * h * 4];
                 }
-            }
-            if (textureDataBuffer.Length > 0) {
-                var gch = GCHandle.Alloc(textureDataBuffer, GCHandleType.Pinned);
-                _CWebViewPlugin_Render(webView, gch.AddrOfPinnedObject());
-                gch.Free();
-                texture.LoadRawTextureData(textureDataBuffer);
-                texture.Apply();
+                if (textureDataBuffer.Length > 0) {
+                    var gch = GCHandle.Alloc(textureDataBuffer, GCHandleType.Pinned);
+                    _CWebViewPlugin_Render(webView, gch.AddrOfPinnedObject());
+                    gch.Free();
+                    texture.LoadRawTextureData(textureDataBuffer);
+                    texture.Apply();
+                }
             }
         }
     }

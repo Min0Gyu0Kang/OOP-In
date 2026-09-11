@@ -30,19 +30,148 @@ public class WebViewController : MonoBehaviour
     [SerializeField]
     private WebViewObject webViewObject;
 
+    [Tooltip("Optional. When assigned, the webview's margins are computed from this " +
+             "panel's on-screen rect every frame instead of the static Left/Right/Top/" +
+             "BottomMargin fields above - a native webview ignores Transforms entirely, " +
+             "so this is what actually confines it to part of the screen.")]
+    [SerializeField]
+    private RectTransform boundsPanel;
+
+    [Tooltip("Strip ad / sidebar elements from the page once it finishes loading.")]
+    public bool removeAds = true;
+
     private Coroutine _loadCoroutine;
+
+    // Below this, treat the panel's on-screen rect as degenerate rather than asking the
+    // native plugin for a near-zero bitmap (mirrors the guard in WebViewObject.Update()).
+    private const int MinBoundsSize = 16;
+
+    private bool marginsValid;
+    private int lastLeft, lastTop, lastRight, lastBottom;
+
+    // When a WebViewWindow chrome sits on this GameObject, it becomes the sole owner of
+    // margins/visibility (it drives both every LateUpdate to track its content area) -
+    // otherwise this component's own static-margin/boundsPanel logic would race it and
+    // cause a one-frame full-screen flash before the window's chrome corrects it.
+    private bool hasOwnWindow;
+
+    // Injected on every page load. Ad slots are filled in asynchronously by the ad
+    // network well after onLoaded fires, so a one-shot pass would miss most of them -
+    // the MutationObserver keeps stripping them as they appear.
+    private const string RemoveAdsJS = @"
+(function () {
+    var selectorsToRemove = [
+        '#right',                       // right sidebar container
+        '#footer-skyscraper',           // skyscraper ads
+        '#stickypos',                   // sticky ad container
+        '#vidpos',                      // video ad area
+        '[data-hbdbrk-parent=""true""]',  // ad network containers
+        '[data-hbdbrk]',                // ad units
+        '.remove-ads-container',        // 'REMOVE ADS' buttons
+        '.sharethis'                    // social links block
+    ];
+
+    function strip() {
+        selectorsToRemove.forEach(function (selector) {
+            var nodes = document.querySelectorAll(selector);
+            for (var i = 0; i < nodes.length; i++) {
+                nodes[i].remove();
+            }
+        });
+    }
+
+    strip();
+
+    if (window.MutationObserver && document.body) {
+        var pending = false;
+        new MutationObserver(function () {
+            if (pending) { return; }
+            pending = true;
+            // Coalesce bursts of DOM mutations into a single pass.
+            window.setTimeout(function () { pending = false; strip(); }, 50);
+        }).observe(document.body, { childList: true, subtree: true });
+    }
+})();
+";
+
+    private void Awake()
+    {
+        hasOwnWindow = GetComponent<WebViewWindow>() != null;
+    }
 
     private void Start() {
         _loadCoroutine = StartCoroutine(LoadWebView(Url));
-        SetVisibility(true);
+        if (!hasOwnWindow)
+        {
+            SetVisibility(true);
+        }
     }
 
-    private void OnDisable() 
+    private void OnDisable()
     {
         if (_loadCoroutine != null)
         {
             StopCoroutine(_loadCoroutine);
         }
+    }
+
+    private void LateUpdate()
+    {
+        // Keep the webview tracking the panel if it's dragged, resized, or the canvas
+        // rescales. No-op until boundsPanel is assigned, and no-op entirely when a
+        // WebViewWindow owns margins/visibility instead.
+        UpdateMarginsFromBounds();
+    }
+
+    /// <summary>
+    /// Computes screen-space margins from <see cref="boundsPanel"/>'s current rect and
+    /// applies them via SetMargins(), matching the math WebViewObject itself uses (a
+    /// bottom-left screen origin). Does nothing if boundsPanel isn't assigned, or if a
+    /// WebViewWindow on this GameObject already owns margins/visibility.
+    /// </summary>
+    private void UpdateMarginsFromBounds()
+    {
+        if (hasOwnWindow || boundsPanel == null || webViewObject == null)
+        {
+            return;
+        }
+
+        Vector3[] corners = new Vector3[4];
+        boundsPanel.GetWorldCorners(corners);
+
+        Canvas canvas = boundsPanel.GetComponentInParent<Canvas>();
+        Camera cam = (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+            ? canvas.worldCamera
+            : null;
+
+        Vector2 bottomLeft = RectTransformUtility.WorldToScreenPoint(cam, corners[0]);
+        Vector2 topRight = RectTransformUtility.WorldToScreenPoint(cam, corners[2]);
+
+        int left = Mathf.Max(0, Mathf.RoundToInt(bottomLeft.x));
+        int bottom = Mathf.Max(0, Mathf.RoundToInt(bottomLeft.y));
+        int right = Mathf.Max(0, Mathf.RoundToInt(Screen.width - topRight.x));
+        int top = Mathf.Max(0, Mathf.RoundToInt(Screen.height - topRight.y));
+
+        int width = Screen.width - (left + right);
+        int height = Screen.height - (top + bottom);
+        if (width < MinBoundsSize || height < MinBoundsSize)
+        {
+            // Degenerate rect (mid-layout, or the panel collapsed) - a 0-sized bitmap
+            // throws inside Texture2D's constructor, so skip this frame instead.
+            return;
+        }
+
+        if (marginsValid && left == lastLeft && top == lastTop && right == lastRight && bottom == lastBottom)
+        {
+            return;
+        }
+
+        webViewObject.SetMargins(left, top, right, bottom);
+        lastLeft = left;
+        lastTop = top;
+        lastRight = right;
+        lastBottom = bottom;
+        marginsValid = true;
     }
 
     public void SetVisibility(bool visibility)
@@ -130,6 +259,11 @@ public class WebViewController : MonoBehaviour
                 var js = "";
 #endif
                 webViewObject.EvaluateJS(js + @"Unity.call('ua=' + navigator.userAgent)");
+
+                if (removeAds)
+                {
+                    webViewObject.EvaluateJS(RemoveAdsJS);
+                }
             }
             //transparent: false,
             //zoom: true,
@@ -166,7 +300,20 @@ public class WebViewController : MonoBehaviour
 
         //webViewObject.SetScrollbarsVisibility(true);
 
-        webViewObject.SetMargins(LeftMargin, TopMargin, RightMargin, BottomMargin);
+        if (hasOwnWindow)
+        {
+            // WebViewWindow drives margins/visibility itself, every LateUpdate, from its
+            // own content area - setting them here too would just cause a one-frame
+            // full-screen flash before it corrects them on the next frame.
+        }
+        else if (boundsPanel != null)
+        {
+            UpdateMarginsFromBounds();
+        }
+        else
+        {
+            webViewObject.SetMargins(LeftMargin, TopMargin, RightMargin, BottomMargin);
+        }
         webViewObject.SetTextZoom(100);  // android only. cf. https://stackoverflow.com/questions/21647641/android-webview-set-font-size-system-default/47017410#47017410
 
 #if !UNITY_WEBPLAYER && !UNITY_WEBGL
