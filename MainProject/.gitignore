@@ -97,3 +97,9 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Ignore entire GameObject asset folders
+Assets/Flexalon/
+Assets/LowPolyFarmLite/
+Assets/LowPolyFoodLite/
+# Add similar folders below as needed
