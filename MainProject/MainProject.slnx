@@ -109,6 +109,7 @@
   <Project Path="Unity.RenderPipeline.Universal.ShaderLibrary.csproj" />
   <Project Path="Unity.AI.Toolkit.Asset.csproj" />
   <Project Path="glTFast.dots.csproj" />
+  <Project Path="Unity.Scripting.Python.Editor.csproj" />
   <Project Path="Unity.AI.Animate.Motion.Runtime.csproj" />
   <Project Path="Unity.InputSystem.DocCodeSamples.csproj" />
   <Project Path="Unity.RenderPipelines.Universal.Shaders.csproj" />

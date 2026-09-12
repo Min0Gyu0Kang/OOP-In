@@ -27,21 +27,51 @@ public class WebViewTrigger : MonoBehaviour
     {
         if (controller == null)
         {
-#if UNITY_2023_1_OR_NEWER
-            controller = FindFirstObjectByType<WebViewController>();
-#else
-            controller = FindObjectOfType<WebViewController>();
-#endif
+            controller = Resolve<WebViewController>();
         }
 
         if (window == null)
         {
-#if UNITY_2023_1_OR_NEWER
-            window = FindFirstObjectByType<WebViewWindow>();
-#else
-            window = FindObjectOfType<WebViewWindow>();
-#endif
+            window = Resolve<WebViewWindow>();
         }
+    }
+
+    /// <summary>
+    /// Finds the component this trigger should drive, narrowest scope first: this
+    /// GameObject, then its parents, and only then the whole scene.
+    ///
+    /// The scene-wide fallback is a safety net, not a wiring strategy - with more than one
+    /// webview in the scene (a reference page and an IDE, say) it cannot know which one the
+    /// trigger means, so it warns and names what it picked. Assign the reference in the
+    /// Inspector to make the choice explicit.
+    /// </summary>
+    T Resolve<T>() where T : Component
+    {
+        var local = GetComponentInParent<T>();
+        if (local != null)
+        {
+            return local;
+        }
+
+#if UNITY_2023_1_OR_NEWER
+        var found = FindObjectsByType<T>(FindObjectsSortMode.InstanceID);
+#else
+        var found = FindObjectsOfType<T>();
+#endif
+        if (found == null || found.Length == 0)
+        {
+            return null;
+        }
+
+        if (found.Length > 1)
+        {
+            Debug.LogWarning("[WebViewTrigger] '" + name + "' has no " + typeof(T).Name +
+                             " assigned and found " + found.Length + " in the scene - using '" +
+                             found[0].name + "'. Assign it in the Inspector to pick deliberately.",
+                             this);
+        }
+
+        return found[0];
     }
 
     // OnMouseUpAsButton fires only when press and release both land on this collider,

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        html, body {
+            width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
+            background: #1e1e1e; color: #ddd;
+            font-family: Segoe UI, Helvetica, Arial, sans-serif;
+        }
+        #layout { display: flex; flex-direction: column; height: 100%; }
+        #toolbar {
+            flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+            padding: 6px 10px; background: #252526; border-bottom: 1px solid #333;
+        }
+        #run {
+            background: #0e639c; color: #fff; border: 0; border-radius: 3px;
+            padding: 5px 14px; font-size: 13px; cursor: pointer;
+        }
+        #run:hover { background: #1177bb; }
+        #run:disabled { background: #444; cursor: default; }
+        #hint { font-size: 12px; color: #888; }
+        #container { flex: 1 1 auto; min-height: 0; }
+    </style>
+    <!-- CDN 또는 로컬 monaco-editor 라이브러리 로드 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
+</head>
+<body>
+    <div id="layout">
+        <div id="toolbar">
+            <button id="run" disabled>Run</button>
+            <span id="hint">Ctrl+Enter</span>
+        </div>
+        <div id="container"></div>
+    </div>
+
+    <script>
+        var editor;
+
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('container'), {
+                value: "# Python Interactive Session\nfarmer.move()\n",
+                language: 'python',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                fontSize: 14,
+                minimap: { enabled: false }
+            });
+
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, sendCodeToUnity);
+
+            var run = document.getElementById('run');
+            run.disabled = false;
+            run.addEventListener('click', sendCodeToUnity);
+        });
+
+        // Unity C#으로 코드 본문 전달하는 브릿지 함수.
+        //
+        // window.Unity is provided by the native webview plugin (Android) or by the shim
+        // WebViewController injects on page load (Windows/WebView2, macOS). It is defined
+        // after the document loads, so it is looked up at click time, not at startup.
+        //
+        // encodeURIComponent is required: WebViewObject.CallFromJS URL-unescapes the whole
+        // message once on the C# side, which is what turns this back into real source text
+        // (newlines included). It also protects literal '&', '?' and '+' in the code.
+        function sendCodeToUnity() {
+            if (!editor) { return; }
+
+            if (!window.Unity || typeof window.Unity.call !== 'function') {
+                console.error('Unity bridge not available yet.');
+                return;
+            }
+
+            var code = editor.getValue();
+            window.Unity.call('run-python?code=' + encodeURIComponent(code));
+        }
+    </script>
+</body>
+</html>

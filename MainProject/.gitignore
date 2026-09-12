@@ -2,6 +2,10 @@
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
+
+# ignore skills 
+.claude/skills/*
+
 .utmp/
 /[Ll]ibrary/
 /[Tt]emp/
