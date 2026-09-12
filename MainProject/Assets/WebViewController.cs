@@ -84,6 +84,10 @@ public class WebViewController : MonoBehaviour
     private bool marginsValid;
     private int lastLeft, lastTop, lastRight, lastBottom;
 
+    // cf. ApplyMargins' degenerate-rect guard.
+    private int degenerateRectFrames;
+    private const int DegenerateRectWarnThreshold = 30;
+
     // World-anchor latch. Flexalon positions objects during its own update, so the anchor's
     // bounds are not final at Start() - projecting there would pin the page to a stale rect.
     // Instead the projection re-runs every LateUpdate until two consecutive frames agree,
@@ -375,6 +379,20 @@ public class WebViewController : MonoBehaviour
             return;
         }
 
+        // worldAnchor itself often has no Renderer (e.g. a bare layout marker like "Top
+        // Editor Input"), so TryGetAnchorBounds falls back to the nearest ancestor's
+        // renderer - which can be a much bigger object (e.g. the mesh the marker sits on)
+        // and produces a rect far larger than the marker was ever meant to represent. When
+        // boundsPanel is also assigned, its RectTransform is a far more reliable size hint
+        // than "whatever renderer happens to be up the hierarchy", so prefer it over that
+        // fallback. worldAnchor stays the sole gate for whether the page loads/shows at all
+        // (see HasPositioningSource) - this only changes which source sizes the rect.
+        if (boundsPanel != null && worldAnchor.GetComponentsInChildren<Renderer>().Length == 0)
+        {
+            UpdateMarginsFromPanel();
+            return;
+        }
+
         Camera cam = ResolveAnchorCamera();
         if (cam == null)
         {
@@ -554,8 +572,21 @@ public class WebViewController : MonoBehaviour
         {
             // Degenerate rect (mid-layout, or the target collapsed) - a 0-sized bitmap
             // throws inside Texture2D's constructor, so skip this frame instead.
+            //
+            // If this never resolves (e.g. a boundsPanel whose ancestors never actually lay
+            // it out to a real size), pendingShow never clears and the page stays invisible
+            // forever - indistinguishable from "never loaded" without this log.
+            degenerateRectFrames++;
+            if (degenerateRectFrames == DegenerateRectWarnThreshold)
+            {
+                Debug.LogWarning("[WebViewController] '" + name + "': rect has stayed degenerate " +
+                                 "(" + width + "x" + height + ") for " + degenerateRectFrames +
+                                 " frames - the webview is loaded but will never become visible " +
+                                 "until its positioning source resolves to a real size.", this);
+            }
             return;
         }
+        degenerateRectFrames = 0;
 
         if (marginsValid && left == lastLeft && top == lastTop && right == lastRight && bottom == lastBottom)
         {
@@ -709,7 +740,20 @@ public class WebViewController : MonoBehaviour
             );
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
         webViewObject.bitmapRefreshCycle = 1;
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+        // devicePixelRatio only ever takes 1 or 2 (cf. gree's original macOS Retina flag,
+        // never a continuous ratio). Hardcoding 1 here ignored Windows display scaling
+        // entirely, so at a 150-200% OS scale preset the native WebView2 surface rendered
+        // its own content as if that scale applied while the requested bitmap size did
+        // not compensate for it - the page content came out visibly oversized relative to
+        // the panel. Bucket the two supported values at the 150% boundary, matching the
+        // set gree exposed for exactly this HiDPI case.
+        float windowsScale = Screen.dpi > 0f ? Screen.dpi / 96f : 1f;
+        webViewObject.devicePixelRatio = (windowsScale >= 1.5f) ? 2 : 1;
+        Debug.Log("[WebViewController] Screen.dpi=" + Screen.dpi + " -> devicePixelRatio=" + webViewObject.devicePixelRatio);
+#else
         webViewObject.devicePixelRatio = 1;  // 1 or 2
+#endif
 #endif
         // cf. https://github.com/gree/unity-webview/pull/512
         // Added alertDialogEnabled flag to enable/disable alert/confirm/prompt dialogs. by KojiNakamaru · Pull Request #512 · gree/unity-webview
