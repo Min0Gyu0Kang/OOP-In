@@ -54,13 +54,6 @@ public class WebViewController : MonoBehaviour
     [Tooltip("Strip ad / sidebar elements from the page once it finishes loading.")]
     public bool removeAds = true;
 
-    [Range(0.1f, 2f)]
-    [Tooltip("CSS zoom applied to the page content after each load, independent of the " +
-             "panel's own on-screen size (which SetMargins/boundsPanel/worldAnchor already " +
-             "control). 1 = page's natural size. 0.5 = content renders at half size (e.g. to " +
-             "fit more of a dense page like Monaco into a small panel).")]
-    public float contentZoom = 1f;
-
     [Tooltip("ON  - a constantly-live webview: the page loads AND the window opens as soon " +
              "as the scene starts, with no click needed (e.g. the Monaco IDE).\n" +
              "OFF - opened on demand: nothing is fetched and no native webview exists until " +
@@ -165,15 +158,6 @@ public class WebViewController : MonoBehaviour
         }).observe(document.body, { childList: true, subtree: true });
     }
 })();
-";
-
-    // Applied once per load, independent of SetMargins/boundsPanel/worldAnchor - those
-    // size the panel on screen, this scales the page content within it (a browser-engine
-    // CSS concern, not a native-rect one). '{0}' is a percentage string, e.g. "50%".
-    private const string ContentZoomJSTemplate = @"
-(function () {{
-    document.documentElement.style.zoom = '{0}';
-}})();
 ";
 
     private void Awake()
@@ -768,12 +752,6 @@ public class WebViewController : MonoBehaviour
                 ";
 #endif
                 webViewObject.EvaluateJS(js + @"Unity.call('ua=' + navigator.userAgent)");
-
-                if (!Mathf.Approximately(contentZoom, 1f))
-                {
-                    webViewObject.EvaluateJS(string.Format(ContentZoomJSTemplate,
-                        (contentZoom * 100f).ToString(System.Globalization.CultureInfo.InvariantCulture) + "%"));
-                }
 
                 if (removeAds)
                 {
