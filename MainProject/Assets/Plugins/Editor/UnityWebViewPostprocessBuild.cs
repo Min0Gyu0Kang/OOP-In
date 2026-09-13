@@ -148,14 +148,18 @@ public class UnityWebViewPostprocessBuild
     [PostProcessBuild(100)]
     public static void OnPostprocessBuild(BuildTarget buildTarget, string path) {
 #if UNITY_2018_1_OR_NEWER
-        try {
-            File.Delete("Assets/Plugins/Android/WebViewPlugin.aar");
-            File.Delete("Assets/Plugins/Android/WebViewPlugin.aar.meta");
-            Directory.Delete("Assets/Plugins/Android");
-            File.Delete("Assets/Plugins/Android.meta");
-            Directory.Delete("Assets/Plugins");
-            File.Delete("Assets/Plugins.meta");
-        } catch (Exception) {
+        // Mirrors OnPreprocessBuild, which is itself Android-only and copies the .aar in
+        // from a .tmpl - so only the generated .aar is ours to remove here. Without the
+        // target check this ran on every build (iOS, Windows, WebGL), mutating the
+        // checkout. It also used to try to remove Assets/Plugins/Android and even
+        // Assets/Plugins along with their .meta files; deleting a parent plugin folder's
+        // metadata makes Unity regenerate it with a fresh GUID, so that is never safe.
+        if (buildTarget == BuildTarget.Android) {
+            try {
+                File.Delete("Assets/Plugins/Android/WebViewPlugin.aar");
+                File.Delete("Assets/Plugins/Android/WebViewPlugin.aar.meta");
+            } catch (Exception) {
+            }
         }
 #else
         if (buildTarget == BuildTarget.Android) {

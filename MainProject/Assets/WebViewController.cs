@@ -54,6 +54,13 @@ public class WebViewController : MonoBehaviour
     [Tooltip("Strip ad / sidebar elements from the page once it finishes loading.")]
     public bool removeAds = true;
 
+    [Range(0.1f, 2f)]
+    [Tooltip("CSS zoom applied to the page content after each load, independent of the " +
+             "panel's own on-screen size (which SetMargins/boundsPanel/worldAnchor already " +
+             "control). 1 = page's natural size. 0.5 = content renders at half size (e.g. to " +
+             "fit more of a dense page like Monaco into a small panel).")]
+    public float contentZoom = 1f;
+
     [Tooltip("ON  - a constantly-live webview: the page loads AND the window opens as soon " +
              "as the scene starts, with no click needed (e.g. the Monaco IDE).\n" +
              "OFF - opened on demand: nothing is fetched and no native webview exists until " +
@@ -158,6 +165,15 @@ public class WebViewController : MonoBehaviour
         }).observe(document.body, { childList: true, subtree: true });
     }
 })();
+";
+
+    // Applied once per load, independent of SetMargins/boundsPanel/worldAnchor - those
+    // size the panel on screen, this scales the page content within it (a browser-engine
+    // CSS concern, not a native-rect one). '{0}' is a percentage string, e.g. "50%".
+    private const string ContentZoomJSTemplate = @"
+(function () {{
+    document.documentElement.style.zoom = '{0}';
+}})();
 ";
 
     private void Awake()
@@ -343,6 +359,19 @@ public class WebViewController : MonoBehaviour
     /// <summary>Screen rect of <see cref="boundsPanel"/>, tracked every frame.</summary>
     private void UpdateMarginsFromPanel()
     {
+        int left, top, right, bottom;
+        GetPanelMargins(out left, out top, out right, out bottom);
+        ApplyMargins(left, top, right, bottom);
+    }
+
+    /// <summary>
+    /// Converts <see cref="boundsPanel"/>'s current on-screen rect to margins, without
+    /// applying them - shared by <see cref="UpdateMarginsFromPanel"/> (every frame) and
+    /// <see cref="LoadWebView"/> (once, before <see cref="WebViewObject.Init"/>, so the
+    /// native surface is created at the right size instead of full screen).
+    /// </summary>
+    private void GetPanelMargins(out int left, out int top, out int right, out int bottom)
+    {
         Vector3[] corners = new Vector3[4];
         boundsPanel.GetWorldCorners(corners);
 
@@ -354,10 +383,10 @@ public class WebViewController : MonoBehaviour
         Vector2 bottomLeft = RectTransformUtility.WorldToScreenPoint(cam, corners[0]);
         Vector2 topRight = RectTransformUtility.WorldToScreenPoint(cam, corners[2]);
 
-        ApplyMargins(Mathf.RoundToInt(bottomLeft.x),
-                     Mathf.RoundToInt(Screen.height - topRight.y),
-                     Mathf.RoundToInt(Screen.width - topRight.x),
-                     Mathf.RoundToInt(bottomLeft.y));
+        left = Mathf.RoundToInt(bottomLeft.x);
+        bottom = Mathf.RoundToInt(bottomLeft.y);
+        right = Mathf.RoundToInt(Screen.width - topRight.x);
+        top = Mathf.RoundToInt(Screen.height - topRight.y);
     }
 
     /// <summary>
@@ -622,6 +651,26 @@ public class WebViewController : MonoBehaviour
     // to do this, you must run SetVisibility(true);
     private IEnumerator LoadWebView(string Url)
     {
+        // Init() creates the native surface at whatever size it's given, and the page
+        // lays out its first paint against that - a later SetMargins() only resizes the
+        // render target, it does not retroactively re-flow content that already laid
+        // itself out for the wrong (default: full-screen) viewport. When boundsPanel is
+        // known up front, hand Init() the real size so the page never sees the wrong one.
+        int initW = 0, initH = 0;
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+        if (boundsPanel != null)
+        {
+            int pl, pt, pr, pb;
+            GetPanelMargins(out pl, out pt, out pr, out pb);
+            int pw = Screen.width - (pl + pr);
+            int ph = Screen.height - (pt + pb);
+            if (pw >= MinBoundsSize && ph >= MinBoundsSize)
+            {
+                initW = pw;
+                initH = ph;
+            }
+        }
+#endif
         webViewObject.Init(
             cb: (msg) =>
             {
@@ -720,11 +769,17 @@ public class WebViewController : MonoBehaviour
 #endif
                 webViewObject.EvaluateJS(js + @"Unity.call('ua=' + navigator.userAgent)");
 
+                if (!Mathf.Approximately(contentZoom, 1f))
+                {
+                    webViewObject.EvaluateJS(string.Format(ContentZoomJSTemplate,
+                        (contentZoom * 100f).ToString(System.Globalization.CultureInfo.InvariantCulture) + "%"));
+                }
+
                 if (removeAds)
                 {
                     webViewObject.EvaluateJS(RemoveAdsJS);
                 }
-            }
+            },
             //transparent: false,
             //zoom: true,
             //ua: "custom user agent string",
@@ -737,6 +792,8 @@ public class WebViewController : MonoBehaviour
             //wkAllowsLinkPreview: true,
             //// editor
             //separated: false
+            initialWidth: initW,
+            initialHeight: initH
             );
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
         webViewObject.bitmapRefreshCycle = 1;

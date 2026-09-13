@@ -10,7 +10,17 @@ AssetOrigin:
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Handle
+    second: {fileID: 2100000, guid: dafcb850aecc6784e920b0ac4fd537f3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Metal
+    second: {fileID: 2100000, guid: 34b9291c2689cbe44ac7c93b3e5bc5f7, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

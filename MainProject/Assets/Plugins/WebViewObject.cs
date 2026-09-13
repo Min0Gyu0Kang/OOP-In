@@ -670,7 +670,15 @@ public class WebViewObject : MonoBehaviour
         bool wkAllowsLinkPreview = true,
         bool wkAllowsBackForwardNavigationGestures = true,
         // editor
-        bool separated = false)
+        bool separated = false,
+        // desktop (OSX/WIN): the size to create the native surface at, so the page's
+        // first layout/paint happens against the caller's intended viewport instead of
+        // the full screen. 0 means "unknown" - fall back to Screen.width/height as
+        // before. A later SetMargins()/SetRect() only resizes the render target; it does
+        // not retroactively fix content the page already laid out for a wrong-sized
+        // viewport at creation time.
+        int initialWidth = 0,
+        int initialHeight = 0)
     {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
         _CWebViewPlugin_InitStatic(
@@ -709,12 +717,14 @@ public class WebViewObject : MonoBehaviour
         //     ua = @"Mozilla/5.0 (iPhone; CPU iPhone OS 7_1_2 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D257 Safari/9537.53";
         // }
 #endif
+        int initW = initialWidth > 0 ? initialWidth : Screen.width;
+        int initH = initialHeight > 0 ? initialHeight : Screen.height;
         webView = _CWebViewPlugin_Init(
             name,
             transparent,
             zoom,
-            Screen.width,
-            Screen.height,
+            initW,
+            initH,
             ua
 #if UNITY_EDITOR
             , separated
@@ -722,7 +732,7 @@ public class WebViewObject : MonoBehaviour
             , false
 #endif
             );
-        rect = new Rect(0, 0, Screen.width, Screen.height);
+        rect = new Rect(0, 0, initW, initH);
         // NOTE: SetVisibility() may have run before webView existed; apply it now.
         if (webView != IntPtr.Zero)
         {
