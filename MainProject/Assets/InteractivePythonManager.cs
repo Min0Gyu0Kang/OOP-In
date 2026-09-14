@@ -68,6 +68,10 @@ public class InteractivePythonManager : MonoBehaviour
         {
             return;
         }
+        if (OOPIn.FarmBridgeManager.Instance != null)
+        {
+            OOPIn.FarmBridgeManager.Instance.ResetTools();
+        }
         Run(code, "submitted code");
     }
 

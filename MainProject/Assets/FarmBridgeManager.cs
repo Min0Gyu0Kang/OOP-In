@@ -10,10 +10,10 @@ namespace OOPIn
     /// </summary>
     public static class Bridge
     {
-        public static bool Plow(int gridX, int gridZ) { return Run(m => m.Plow(gridX, gridZ)); }
-        public static bool Remove(int gridX, int gridZ) { return Run(m => m.Remove(gridX, gridZ)); }
-        public static bool Plant(int gridX, int gridZ) { return Run(m => m.Plant(gridX, gridZ)); }
-        public static bool Harvest(int gridX, int gridZ) { return Run(m => m.Harvest(gridX, gridZ)); }
+        public static bool Plow(int gridX, int gridZ) { return Run(m => m.Enqueue(FarmAction.Plow, gridX, gridZ)); }
+        public static bool Remove(int gridX, int gridZ) { return Run(m => m.Enqueue(FarmAction.Remove, gridX, gridZ)); }
+        public static bool Plant(int gridX, int gridZ) { return Run(m => m.Enqueue(FarmAction.Plant, gridX, gridZ)); }
+        public static bool Harvest(int gridX, int gridZ) { return Run(m => m.Enqueue(FarmAction.Harvest, gridX, gridZ)); }
 
         private static bool Run(System.Func<FarmBridgeManager, bool> action)
         {
@@ -25,6 +25,8 @@ namespace OOPIn
             return action(FarmBridgeManager.Instance);
         }
     }
+
+    public enum FarmAction { Plow, Remove, Plant, Harvest }
 
     public class FarmBridgeManager : MonoBehaviour
     {
@@ -46,12 +48,28 @@ namespace OOPIn
         public float heightOffset = 5f;
         [Tooltip("Seconds for a tool to travel to its target. 0 = teleport.")]
         public float moveDuration = 0.35f;
+        [Tooltip("Pause after each command before the next one starts.")]
+        public float dwellSeconds = 0.2f;
 
-        // Positions of soft-deleted cubes, keyed by grid cell. Recorded before deactivation,
-        // because an inactive child can be skipped by the layout and its transform can't be
-        // trusted afterwards.
-        private readonly Dictionary<Vector2Int, Vector3> removedCells = new Dictionary<Vector2Int, Vector3>();
-        private readonly Dictionary<Transform, Coroutine> activeMoves = new Dictionary<Transform, Coroutine>();
+        private struct Command
+        {
+            public FarmAction action;
+            public int index;
+        }
+
+        // Cubes are hidden by disabling renderers/colliders, never SetActive(false): Flexalon
+        // skips inactive children and reassigns cells in child order, so deactivating one
+        // would slide every later cube into its cell.
+        private bool[] visibleCells;
+        // What visibility will be once the queue drains - lets Plow(1,1); Plant(1,1) in one
+        // submission validate before the plow has actually played.
+        private bool[] projectedVisible;
+
+        private readonly Queue<Command> queue = new Queue<Command>();
+        private Coroutine runner;
+
+        private Vector3[] toolHomePositions;
+        private Quaternion[] toolHomeRotations;
 
         private void Awake()
         {
@@ -71,6 +89,36 @@ namespace OOPIn
             if (gridRoot == null) Debug.LogError("[FarmBridgeManager] Grid root not found - assign it.", this);
             if (hoe == null || shovel == null || sickle == null)
                 Debug.LogError("[FarmBridgeManager] One or more tools not found - assign Hoe/Shovel/Sickle.", this);
+
+            var tools = Tools();
+            toolHomePositions = new Vector3[tools.Length];
+            toolHomeRotations = new Quaternion[tools.Length];
+            for (int i = 0; i < tools.Length; i++)
+            {
+                if (tools[i] == null) continue;
+                toolHomePositions[i] = tools[i].position;
+                toolHomeRotations[i] = tools[i].rotation;
+            }
+        }
+
+        private void Start()
+        {
+            if (gridRoot == null) return;
+
+            int count = gridRoot.childCount;
+            visibleCells = new bool[count];
+            projectedVisible = new bool[count];
+            for (int i = 0; i < count; i++)
+            {
+                SetCubeVisible(gridRoot.GetChild(i), false);
+            }
+
+            if (count > 0)
+            {
+                Debug.Log("[FarmBridgeManager] " + columns + "x" + (count / columns) + " grid. Cell (0,0) at " +
+                          gridRoot.GetChild(0).position + ", last cell at " + gridRoot.GetChild(count - 1).position +
+                          ". gridX runs along columns, gridZ along rows.", this);
+            }
         }
 
         private void OnDestroy()
@@ -78,72 +126,113 @@ namespace OOPIn
             if (Instance == this) Instance = null;
         }
 
-        public bool Plow(int gridX, int gridZ)
+        public bool Enqueue(FarmAction action, int gridX, int gridZ)
         {
-            Transform cube;
-            if (!TryGetCell(gridX, gridZ, out cube)) return false;
+            int index;
+            if (!TryGetIndex(gridX, gridZ, out index)) return false;
 
-            var cell = new Vector2Int(gridX, gridZ);
-            Vector3 target = cube.position;
-            if (!cube.gameObject.activeSelf)
+            switch (action)
             {
-                Vector3 cached;
-                if (removedCells.TryGetValue(cell, out cached)) target = cached;
-                cube.gameObject.SetActive(true);
-                removedCells.Remove(cell);
+                case FarmAction.Plow:
+                    projectedVisible[index] = true;
+                    break;
+                case FarmAction.Remove:
+                    if (!projectedVisible[index])
+                    {
+                        Debug.LogWarning("[FarmBridgeManager] Cell (" + gridX + ", " + gridZ + ") has no cube to remove.", this);
+                        return false;
+                    }
+                    projectedVisible[index] = false;
+                    break;
+                default:
+                    if (!projectedVisible[index])
+                    {
+                        Debug.LogWarning("[FarmBridgeManager] Cell (" + gridX + ", " + gridZ + ") is not plowed - plow it first.", this);
+                        return false;
+                    }
+                    break;
             }
 
-            MoveTool(hoe, target);
+            queue.Enqueue(new Command { action = action, index = index });
+            if (runner == null)
+            {
+                runner = StartCoroutine(RunQueue());
+            }
             return true;
         }
 
-        public bool Remove(int gridX, int gridZ)
+        /// <summary>
+        /// Drops pending commands, returns every tool to where it started and hides every cube. Called before
+        /// each new code submission.
+        /// </summary>
+        public void ResetTools()
         {
-            Transform cube;
-            if (!TryGetCell(gridX, gridZ, out cube)) return false;
-
-            if (!cube.gameObject.activeSelf)
+            queue.Clear();
+            if (runner != null)
             {
-                Debug.LogWarning("[FarmBridgeManager] Cell (" + gridX + ", " + gridZ + ") is already removed.", this);
-                return false;
+                StopCoroutine(runner);
+                runner = null;
             }
 
-            var cell = new Vector2Int(gridX, gridZ);
-            removedCells[cell] = cube.position;
-            MoveTool(hoe, cube.position);
-            cube.gameObject.SetActive(false);
-            return true;
-        }
-
-        public bool Plant(int gridX, int gridZ)
-        {
-            return MoveToolOverCell(shovel, gridX, gridZ);
-        }
-
-        public bool Harvest(int gridX, int gridZ)
-        {
-            return MoveToolOverCell(sickle, gridX, gridZ);
-        }
-
-        private bool MoveToolOverCell(Transform tool, int gridX, int gridZ)
-        {
-            Transform cube;
-            if (!TryGetCell(gridX, gridZ, out cube)) return false;
-
-            if (!cube.gameObject.activeSelf)
+            var tools = Tools();
+            for (int i = 0; i < tools.Length; i++)
             {
-                Debug.LogWarning("[FarmBridgeManager] Cell (" + gridX + ", " + gridZ + ") is removed - plow it first.", this);
-                return false;
+                if (tools[i] == null) continue;
+                tools[i].SetPositionAndRotation(toolHomePositions[i], toolHomeRotations[i]);
             }
 
-            MoveTool(tool, cube.position);
-            return true;
+            if (visibleCells == null) return;
+
+            for (int i = 0; i < visibleCells.Length; i++)
+            {
+                SetCubeVisible(gridRoot.GetChild(i), false);
+                projectedVisible[i] = false;
+            }
         }
 
-        private bool TryGetCell(int gridX, int gridZ, out Transform cube)
+        private IEnumerator RunQueue()
         {
-            cube = null;
-            if (gridRoot == null || columns <= 0) return false;
+            while (queue.Count > 0)
+            {
+                var cmd = queue.Dequeue();
+                var cube = gridRoot.GetChild(cmd.index);
+
+                yield return MoveTool(ToolFor(cmd.action), cube.position);
+
+                if (cmd.action == FarmAction.Plow) SetCubeVisible(cube, true);
+                else if (cmd.action == FarmAction.Remove) SetCubeVisible(cube, false);
+
+                if (dwellSeconds > 0f) yield return new WaitForSeconds(dwellSeconds);
+            }
+            runner = null;
+        }
+
+        private Transform ToolFor(FarmAction action)
+        {
+            switch (action)
+            {
+                case FarmAction.Plant: return shovel;
+                case FarmAction.Harvest: return sickle;
+                default: return hoe;
+            }
+        }
+
+        private void SetCubeVisible(Transform cube, bool visible)
+        {
+            foreach (var r in cube.GetComponentsInChildren<Renderer>(true)) r.enabled = visible;
+            foreach (var c in cube.GetComponentsInChildren<Collider>(true)) c.enabled = visible;
+
+            int index = cube.GetSiblingIndex();
+            if (visibleCells != null && index < visibleCells.Length)
+            {
+                visibleCells[index] = visible;
+            }
+        }
+
+        private bool TryGetIndex(int gridX, int gridZ, out int index)
+        {
+            index = -1;
+            if (gridRoot == null || columns <= 0 || visibleCells == null) return false;
 
             int rows = gridRoot.childCount / columns;
             if (gridX < 0 || gridX >= columns || gridZ < 0 || gridZ >= rows)
@@ -153,34 +242,21 @@ namespace OOPIn
                 return false;
             }
 
-            // GetChild includes inactive children, so a soft-deleted cube keeps its index.
-            cube = gridRoot.GetChild(gridZ * columns + gridX);
+            index = gridZ * columns + gridX;
             return true;
         }
 
-        private void MoveTool(Transform tool, Vector3 cubePosition)
+        private IEnumerator MoveTool(Transform tool, Vector3 cubePosition)
         {
-            if (tool == null) return;
+            if (tool == null) yield break;
 
             var destination = new Vector3(cubePosition.x, cubePosition.y + heightOffset, cubePosition.z);
-
-            Coroutine running;
-            if (activeMoves.TryGetValue(tool, out running) && running != null)
-            {
-                StopCoroutine(running);
-            }
-
             if (moveDuration <= 0f)
             {
                 tool.position = destination;
-                activeMoves.Remove(tool);
-                return;
+                yield break;
             }
-            activeMoves[tool] = StartCoroutine(MoveRoutine(tool, destination));
-        }
 
-        private IEnumerator MoveRoutine(Transform tool, Vector3 destination)
-        {
             Vector3 start = tool.position;
             for (float t = 0f; t < moveDuration; t += Time.deltaTime)
             {
@@ -188,7 +264,11 @@ namespace OOPIn
                 yield return null;
             }
             tool.position = destination;
-            activeMoves.Remove(tool);
+        }
+
+        private Transform[] Tools()
+        {
+            return new[] { hoe, shovel, sickle };
         }
 
         private static Transform FindByName(params string[] names)
