@@ -15,16 +15,15 @@ public class InteractivePythonManager : MonoBehaviour
 {
     public static InteractivePythonManager Instance { get; private set; }
 
+    private const string SessionScope = "__main__";
+
     [Tooltip("Runs once at startup to set up the persistent Python session.")]
     [TextArea(6, 20)]
     public string bootstrapScript =
+        "import clr\n" +
+        "clr.AddReference('Assembly-CSharp')\n" +
         "import UnityEngine\n" +
-        "\n" +
-        "class FarmerWrapper:\n" +
-        "    def move(self):\n" +
-        "        UnityEngine.Debug.Log('Farmer Move Called from Python!')\n" +
-        "\n" +
-        "farmer = FarmerWrapper()\n";
+        "from OOPIn import Bridge\n";
 
     private void Awake()
     {
@@ -77,7 +76,9 @@ public class InteractivePythonManager : MonoBehaviour
 #if UNITY_EDITOR
         try
         {
-            PythonRunner.RunString(code);
+            // Without a scope name RunString execs in a fresh globals dict every call, so
+            // the bootstrap's imports and earlier submissions' variables would vanish.
+            PythonRunner.RunString(code, SessionScope);
         }
         catch (System.Exception e)
         {
