@@ -40,7 +40,10 @@ public class WebViewWindow : MonoBehaviour
 
     [Tooltip("Stay completely hidden (no window, no restore button) until something calls " +
              "Open() - e.g. WebViewTrigger on the guide cube. Uncheck to open immediately " +
-             "when the scene starts.")]
+             "when the scene starts.\n" +
+             "NOTE: a WebViewController on this GameObject with Load On Start enabled opens " +
+             "the window at Start() regardless, so that flag is the one that decides " +
+             "startup behaviour for a constantly-live webview.")]
     public bool startHidden = true;
 
     [Header("Sizing")]

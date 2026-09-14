@@ -1,0 +1,3 @@
+# ignore skills 
+# Ignore Claude configuration and skills completely
+.claude/

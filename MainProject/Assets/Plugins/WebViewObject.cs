@@ -487,6 +487,16 @@ public class WebViewObject : MonoBehaviour
     private static extern void _CWebViewPlugin_SendMouseEvent(IntPtr instance, int x, int y, float deltaY, int mouseState);
     [DllImport("WebView")]
     private static extern void _CWebViewPlugin_SendKeyEvent(IntPtr instance, int x, int y, string keyChars, ushort keyCode, int keyState);
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+    // The Windows plugin treats keyCode as a Windows virtual-key code (it feeds it to
+    // MapVirtualKeyW), NOT as a character. Those two numbering spaces overlap only by
+    // accident: 'A'-'Z' and '0'-'9' happen to equal VK_A-VK_Z / VK_0-VK_9, but every
+    // lowercase letter lands on an unrelated key - 'p' (0x70) is VK_F1, 't' (0x74) is
+    // VK_F5, 'a'-'i' are the numpad digits. Passing the raw char therefore typed nothing
+    // and instead fired F1 (Monaco's command palette) and F5 (reload, wiping the buffer).
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern short VkKeyScanW(char ch);
+#endif
     [DllImport("WebView")]
     private static extern void _CWebViewPlugin_Update(IntPtr instance, bool refreshBitmap, int devicePixelRatio);
     [DllImport("WebView")]
@@ -660,7 +670,15 @@ public class WebViewObject : MonoBehaviour
         bool wkAllowsLinkPreview = true,
         bool wkAllowsBackForwardNavigationGestures = true,
         // editor
-        bool separated = false)
+        bool separated = false,
+        // desktop (OSX/WIN): the size to create the native surface at, so the page's
+        // first layout/paint happens against the caller's intended viewport instead of
+        // the full screen. 0 means "unknown" - fall back to Screen.width/height as
+        // before. A later SetMargins()/SetRect() only resizes the render target; it does
+        // not retroactively fix content the page already laid out for a wrong-sized
+        // viewport at creation time.
+        int initialWidth = 0,
+        int initialHeight = 0)
     {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
         _CWebViewPlugin_InitStatic(
@@ -699,12 +717,14 @@ public class WebViewObject : MonoBehaviour
         //     ua = @"Mozilla/5.0 (iPhone; CPU iPhone OS 7_1_2 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D257 Safari/9537.53";
         // }
 #endif
+        int initW = initialWidth > 0 ? initialWidth : Screen.width;
+        int initH = initialHeight > 0 ? initialHeight : Screen.height;
         webView = _CWebViewPlugin_Init(
             name,
             transparent,
             zoom,
-            Screen.width,
-            Screen.height,
+            initW,
+            initH,
             ua
 #if UNITY_EDITOR
             , separated
@@ -712,7 +732,7 @@ public class WebViewObject : MonoBehaviour
             , false
 #endif
             );
-        rect = new Rect(0, 0, Screen.width, Screen.height);
+        rect = new Rect(0, 0, initW, initH);
         // NOTE: SetVisibility() may have run before webView existed; apply it now.
         if (webView != IntPtr.Zero)
         {
@@ -1744,6 +1764,15 @@ public class WebViewObject : MonoBehaviour
             while (!string.IsNullOrEmpty(inputString)) {
                 var keyChars = inputString.Substring(0, 1);
                 var keyCode = (ushort)inputString[0];
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+                // cf. VkKeyScanW above: translate the character into the virtual-key code
+                // the native side actually expects. keyChars still carries the literal
+                // text, so this only corrects which *key* the page thinks was pressed.
+                // -1 means the current layout has no key for this character; send 0 rather
+                // than 0xFFFF so the plugin falls back to the character alone.
+                var vk = VkKeyScanW(inputString[0]);
+                keyCode = (vk == -1) ? (ushort)0 : (ushort)(vk & 0xFF);
+#endif
                 inputString = inputString.Substring(1);
                 if (!string.IsNullOrEmpty(keyChars) || keyCode != 0) {
                     Vector3 p;
