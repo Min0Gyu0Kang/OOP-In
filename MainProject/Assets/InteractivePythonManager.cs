@@ -97,6 +97,13 @@ public class InteractivePythonManager : MonoBehaviour
 
         var encoded = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(code));
         Run(string.Format(RunnerTemplate, encoded), "submitted code");
+
+        // RunString is synchronous, so the whole script has been checked by now: play it,
+        // or report the first error and play nothing.
+        if (OOPIn.FarmBridgeManager.Instance != null)
+        {
+            OOPIn.FarmBridgeManager.Instance.CommitRun();
+        }
     }
 
     private void Run(string code, string what)
@@ -111,12 +118,7 @@ public class InteractivePythonManager : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError("[InteractivePythonManager] Python error running " + what + ":\n" + e.Message, this);
-            OOPIn.RunLog.Add(new OOPIn.RunLogEntry
-            {
-                ok = false,
-                pythonError = true,
-                text = "Python error in " + what + ": " + e.Message
-            });
+            OOPIn.Bridge.ReportError(0, "Python error in " + what, e.Message);
         }
 #else
         Debug.LogWarning("[InteractivePythonManager] Python scripting is Editor-only; " +

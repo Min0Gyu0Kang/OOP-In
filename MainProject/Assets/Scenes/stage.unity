@@ -1045,15 +1045,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 19f66ff944e6f3f428a16e5210fddaea, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.41729832
+      value: 0.5090099
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 19f66ff944e6f3f428a16e5210fddaea, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.301315
+      value: 1.3020144
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 19f66ff944e6f3f428a16e5210fddaea, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.0007947851
+      value: -0.0048238365
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 19f66ff944e6f3f428a16e5210fddaea, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1123,7 +1123,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
   Parent: {fileID: 1189691522}
   SiblingIndex: 2
-  LayoutPosition: {x: 0.4193311, y: 1.2946008, z: 0}
+  LayoutPosition: {x: 0.5041115, y: 1.3036206, z: 0}
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
     m_Center: {x: 0.002032796, y: -0.006714155, z: 0.0007947851}
@@ -1137,11 +1137,11 @@ MonoBehaviour:
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 0, y: 0, z: 0}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
-  TargetPosition: {x: 0.41729832, y: 1.301315, z: -0.0007947851}
+  TargetPosition: {x: 0.5090099, y: 1.3020144, z: -0.0048238365}
   TargetRotation: {x: -0.6638469, y: -0.6161111, z: 0.130319, w: 0.40339983}
   TargetScale: {x: 1, y: 1, z: 1}
   TargetRectSize: {x: 0, y: 0, z: 0}
-  TransformPosition: {x: 0.41729832, y: 1.301315, z: -0.0007947851}
+  TransformPosition: {x: 0.5090099, y: 1.3020144, z: -0.0048238365}
   TransformRotation: {x: -0.6638469, y: -0.6161111, z: 0.130319, w: 0.40339983}
   TransformScale: {x: 1, y: 1, z: 1}
   TransformRectSize: {x: 0, y: 0}
@@ -3544,43 +3544,43 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.41881204
+      value: -0.5118009
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.3787841
+      value: 0.44072625
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.0005626362
+      value: 0.05192831
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.66365486
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.7430144
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.08088327
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0.030818813
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -85.503
+      value: -82.391
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -54.825
+      value: -152.294
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 52.156
+      value: 143.214
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 492a45aed2810d6409d24485e57a145c, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -3622,7 +3622,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
   Parent: {fileID: 1189691522}
   SiblingIndex: 5
-  LayoutPosition: {x: -0.4193311, y: 0.4315336, z: 0}
+  LayoutPosition: {x: -0.5041115, y: 0.4345402, z: 0}
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
     m_Center: {x: -0.00051905215, y: 0.05274951, z: -0.0005626362}
@@ -3636,12 +3636,12 @@ MonoBehaviour:
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 0, y: 0, z: 0}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
-  TargetPosition: {x: -0.41881204, y: 0.3787841, z: 0.0005626362}
-  TargetRotation: {x: 0, y: 0, z: 0, w: 1}
+  TargetPosition: {x: -0.5118009, y: 0.44072625, z: 0.05192831}
+  TargetRotation: {x: -0.7430144, y: -0.08088327, z: -0.030818813, w: 0.66365486}
   TargetScale: {x: 1, y: 1, z: 1}
   TargetRectSize: {x: 0, y: 0, z: 0}
-  TransformPosition: {x: -0.41881204, y: 0.3787841, z: 0.0005626362}
-  TransformRotation: {x: 0, y: 0, z: 0, w: 1}
+  TransformPosition: {x: -0.5118009, y: 0.44072625, z: 0.05192831}
+  TransformRotation: {x: -0.7430144, y: -0.08088327, z: -0.030818813, w: 0.66365486}
   TransformScale: {x: 1, y: 1, z: 1}
   TransformRectSize: {x: 0, y: 0}
 --- !u!1001 &429410083
@@ -6077,43 +6077,43 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.4193311
+      value: -0.50408685
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.2946008
+      value: 1.3038564
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -0.001222372
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.80895585
+      value: 0.76638687
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.57915825
+      value: -0.63806444
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.09682827
+      value: -0.06945923
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.028114151
+      value: -0.026465759
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -68.683
+      value: -100.983
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -31.367
+      value: 157.57
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 25.699
+      value: -165.384
       objectReference: {fileID: 0}
     - target: {fileID: 485388130867004305, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -6135,13 +6135,22 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 66b02b87ddcae84459ee4523fe65bc67, type: 2}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedComponents:
+    - {fileID: 5551014577142218206, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
+    m_RemovedGameObjects:
+    - {fileID: 5627652661706549041, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
+    - {fileID: -5206814961532230377, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 100000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
       insertIndex: -1
       addedObject: {fileID: 719233753}
+    - targetCorrespondingSourceObject: {fileID: 100000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 719233755}
+    - targetCorrespondingSourceObject: {fileID: 100000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 719233754}
   m_SourcePrefab: {fileID: 100100000, guid: b7cf12fb849f2ce4592a36e9c9c8d4f9, type: 3}
 --- !u!4 &719233751 stripped
 Transform:
@@ -6167,28 +6176,85 @@ MonoBehaviour:
   m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
   Parent: {fileID: 1189691522}
   SiblingIndex: 1
-  LayoutPosition: {x: -0.4193311, y: 1.2946008, z: 0}
+  LayoutPosition: {x: -0.5041115, y: 1.3036206, z: 0}
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
+    m_Center: {x: 0.00059085153, y: -0.0011803154, z: -0.00008767098}
+    m_Extent: {x: 0.053077854, y: 0.05374065, z: 0.053745937}
   LayoutBounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
+    m_Center: {x: 0.00059085153, y: -0.0011803154, z: -0.00008767098}
+    m_Extent: {x: 0.053077854, y: 0.05374065, z: 0.053745937}
   RotatedAndScaledBounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
+    m_Center: {x: 0.00059085153, y: -0.0011803154, z: -0.00008767098}
+    m_Extent: {x: 0.053077854, y: 0.05374065, z: 0.053745937}
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 0, y: 0, z: 0}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
-  TargetPosition: {x: -0.4193311, y: 1.2946008, z: 0}
-  TargetRotation: {x: -0.57915825, y: -0.09682827, z: 0.028114151, w: 0.80895585}
+  TargetPosition: {x: -0.50408685, y: 1.3038564, z: -0.001222372}
+  TargetRotation: {x: -0.63806444, y: -0.06945923, z: -0.026465759, w: 0.76638687}
   TargetScale: {x: 1, y: 1, z: 1}
   TargetRectSize: {x: 0, y: 0, z: 0}
-  TransformPosition: {x: -0.4193311, y: 1.2946008, z: 0}
-  TransformRotation: {x: -0.57915825, y: -0.09682827, z: 0.028114151, w: 0.80895585}
+  TransformPosition: {x: -0.50408685, y: 1.3038564, z: -0.001222372}
+  TransformRotation: {x: -0.63806444, y: -0.06945923, z: -0.026465759, w: 0.76638687}
   TransformScale: {x: 1, y: 1, z: 1}
   TransformRectSize: {x: 0, y: 0}
+--- !u!23 &719233754
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 719233752}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 1196e9a2a0da5554099639cb385f4f2c, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &719233755
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 719233752}
+  m_Mesh: {fileID: -1340541719380434750, guid: 9da20384a72bafd4ba5e77eaa896ccd6, type: 3}
 --- !u!1001 &743473258
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8514,43 +8580,43 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.2577671
+      value: -1.5115831
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.4314522
+      value: -0.43436265
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.00018264353
+      value: 0.000110805035
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.8486803
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.5253536
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.057189465
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0.021790758
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -85.879
+      value: -116.593
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -33.789
+      value: 170.462
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 40.949
+      value: -177.042
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 01a647d07ea2c9544a4ebba6208c2ed3, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -8592,7 +8658,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
   Parent: {fileID: 1189691522}
   SiblingIndex: 8
-  LayoutPosition: {x: -1.2579933, y: -0.4315336, z: 0}
+  LayoutPosition: {x: -1.5123345, y: -0.4345402, z: 0}
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
     m_Center: {x: -0.00022625923, y: -0.00008139759, z: -0.00018264353}
@@ -8606,12 +8672,12 @@ MonoBehaviour:
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 0, y: 0, z: 0}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
-  TargetPosition: {x: -1.2577671, y: -0.4314522, z: 0.00018264353}
-  TargetRotation: {x: 0, y: 0, z: 0, w: 1}
+  TargetPosition: {x: -1.5115831, y: -0.43436265, z: 0.000110805035}
+  TargetRotation: {x: -0.5253536, y: -0.057189465, z: -0.021790758, w: 0.8486803}
   TargetScale: {x: 1, y: 1, z: 1}
   TargetRectSize: {x: 0, y: 0, z: 0}
-  TransformPosition: {x: -1.2577671, y: -0.4314522, z: 0.00018264353}
-  TransformRotation: {x: 0, y: 0, z: 0, w: 1}
+  TransformPosition: {x: -1.5115831, y: -0.43436265, z: 0.000110805035}
+  TransformRotation: {x: -0.5253536, y: -0.057189465, z: -0.021790758, w: 0.8486803}
   TransformScale: {x: 1, y: 1, z: 1}
   TransformRectSize: {x: 0, y: 0}
 --- !u!43 &1047524375
@@ -9109,43 +9175,43 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.2647693
+      value: -1.5255901
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.39041322
+      value: 0.43891323
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.004741449
+      value: 0.03964573
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.613175
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.7846411
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.085414834
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0.032545477
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -86.299
+      value: -75.422
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -88.013
+      value: -167.687
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 85.284
+      value: 158.04
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 539003eed0bf20a4faf58b92584a662b, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -9187,7 +9253,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
   Parent: {fileID: 1189691522}
   SiblingIndex: 4
-  LayoutPosition: {x: -1.2579933, y: 0.4315336, z: 0}
+  LayoutPosition: {x: -1.5123345, y: 0.4345402, z: 0}
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
     m_Center: {x: 0.0067760115, y: 0.041120384, z: 0.004741449}
@@ -9201,12 +9267,12 @@ MonoBehaviour:
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 0, y: 0, z: 0}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
-  TargetPosition: {x: -1.2647693, y: 0.39041322, z: -0.004741449}
-  TargetRotation: {x: 0, y: 0, z: 0, w: 1}
+  TargetPosition: {x: -1.5255901, y: 0.43891323, z: 0.03964573}
+  TargetRotation: {x: -0.7846411, y: -0.085414834, z: -0.032545477, w: 0.613175}
   TargetScale: {x: 1, y: 1, z: 1}
   TargetRectSize: {x: 0, y: 0, z: 0}
-  TransformPosition: {x: -1.2647693, y: 0.39041322, z: -0.004741449}
-  TransformRotation: {x: 0, y: 0, z: 0, w: 1}
+  TransformPosition: {x: -1.5255901, y: 0.43891323, z: 0.03964573}
+  TransformRotation: {x: -0.7846411, y: -0.085414834, z: -0.032545477, w: 0.613175}
   TransformScale: {x: 1, y: 1, z: 1}
   TransformRectSize: {x: 0, y: 0}
 --- !u!1001 &1155016494
@@ -9823,13 +9889,13 @@ MonoBehaviour:
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 1.4273244, y: 1.4761344, z: 0.17217211}
+    m_Extent: {x: 1.766446, y: 1.4881608, z: 0.23993877}
   LayoutBounds:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 1.4273244, y: 1.4761344, z: 0.17217211}
+    m_Extent: {x: 1.766446, y: 1.4881608, z: 0.23993877}
   RotatedAndScaledBounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 1.7851856, y: 1.3444046, z: 1.7281798}
+    m_Center: {x: -0.00000023841858, y: 0, z: 0}
+    m_Extent: {x: 2.032547, y: 1.4399867, z: 2.0115738}
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 1, y: 1, z: 1}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
@@ -12881,43 +12947,43 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.2579933
+      value: -1.4483472
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.2946008
+      value: 1.3227617
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 0.16069663
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.6483728
+      value: 0.6304
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.751475
+      value: -0.7615801
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.10780166
+      value: 0.12282184
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.05724354
+      value: 0.08663976
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -74.181
+      value: 258.957
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -124.061
+      value: -366.862
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 119.924
+      value: 23.977005
       objectReference: {fileID: 0}
     - target: {fileID: 1943481091504676958, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -12939,13 +13005,22 @@ PrefabInstance:
       propertyPath: m_LocalReferencePoint.z
       value: 0.017453521
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedComponents:
+    - {fileID: 5551014577142218206, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
+    m_RemovedGameObjects:
+    - {fileID: 8625942619743278839, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
+    - {fileID: -7148913818176808182, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 100000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1398286849}
+    - targetCorrespondingSourceObject: {fileID: 100000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1398286851}
+    - targetCorrespondingSourceObject: {fileID: 100000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1398286850}
   m_SourcePrefab: {fileID: 100100000, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
 --- !u!4 &1398286847 stripped
 Transform:
@@ -12971,28 +13046,85 @@ MonoBehaviour:
   m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
   Parent: {fileID: 1189691522}
   SiblingIndex: 0
-  LayoutPosition: {x: -1.2579933, y: 1.2946008, z: 0}
+  LayoutPosition: {x: -1.5123345, y: 1.3036206, z: 0}
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
+    m_Center: {x: -0.011911906, y: 0.17282535, z: 0.010028496}
+    m_Extent: {x: 0.2541115, y: 0.1845402, z: 0.23993877}
   LayoutBounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
+    m_Center: {x: -0.011911906, y: 0.17282535, z: 0.010028496}
+    m_Extent: {x: 0.2541115, y: 0.1845402, z: 0.23993877}
   RotatedAndScaledBounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
+    m_Center: {x: -0.011911906, y: 0.17282535, z: 0.010028496}
+    m_Extent: {x: 0.2541115, y: 0.1845402, z: 0.23993877}
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 0, y: 0, z: 0}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
-  TargetPosition: {x: -1.2579933, y: 1.2946008, z: 0}
-  TargetRotation: {x: -0.751475, y: -0.10780166, z: 0.05724354, w: 0.6483728}
+  TargetPosition: {x: -1.4483472, y: 1.3227617, z: 0.16069663}
+  TargetRotation: {x: -0.7615801, y: 0.12282184, z: 0.08663976, w: 0.6304}
   TargetScale: {x: 1, y: 1, z: 1}
   TargetRectSize: {x: 0, y: 0, z: 0}
-  TransformPosition: {x: -1.2579933, y: 1.2946008, z: 0}
-  TransformRotation: {x: -0.751475, y: -0.10780166, z: 0.05724354, w: 0.6483728}
+  TransformPosition: {x: -1.4483472, y: 1.3227617, z: 0.16069663}
+  TransformRotation: {x: -0.7615801, y: 0.12282184, z: 0.08663976, w: 0.6304}
   TransformScale: {x: 1, y: 1, z: 1}
   TransformRectSize: {x: 0, y: 0}
+--- !u!23 &1398286850
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1398286848}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 66b02b87ddcae84459ee4523fe65bc67, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1398286851
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1398286848}
+  m_Mesh: {fileID: -3194043255641871804, guid: 0f50786d35eebcf44805f9d5fb326c11, type: 3}
 --- !u!4 &1401273454 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5387197009109602892, guid: 821da92d092726d429138ec67ab0f438, type: 3}
@@ -13016,11 +13148,13 @@ MonoBehaviour:
   shovel: {fileID: 1813323386}
   sickle: {fileID: 1513733345}
   plantsRoot: {fileID: 1189691522}
-  plantHeight: 1
+  plantFootprint: 0.6
+  plantMaxHeight: 1.5
+  plantGap: 0
   plantEulerOffset: {x: 0, y: 0, z: 0}
-  heightOffset: 5
+  toolClearance: 0.5
   moveDuration: 0.35
-  dwellSeconds: 0.2
+  dwellSeconds: 0.5
 --- !u!1001 &1427957707
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13775,43 +13909,43 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.41933385
+      value: -0.5000129
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.42140272
+      value: -0.43155473
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.0000018104911
+      value: -0.008741289
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.7927652
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.57890844
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.16252476
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0.09987054
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -59.255
+      value: -71.868
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -5.889
+      value: -27.159
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 3.904
+      value: 5.5
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 87f1d3e1f881742479c0f30526ecf0e4, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -13853,7 +13987,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
   Parent: {fileID: 1189691522}
   SiblingIndex: 9
-  LayoutPosition: {x: -0.4193311, y: -0.4315336, z: 0}
+  LayoutPosition: {x: -0.5041115, y: -0.4345402, z: 0}
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
     m_Center: {x: 0.000002734363, y: -0.010130875, z: 0.0000018104911}
@@ -13867,12 +14001,12 @@ MonoBehaviour:
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 0, y: 0, z: 0}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
-  TargetPosition: {x: -0.41933385, y: -0.42140272, z: -0.0000018104911}
-  TargetRotation: {x: 0, y: 0, z: 0, w: 1}
+  TargetPosition: {x: -0.5000129, y: -0.43155473, z: -0.008741289}
+  TargetRotation: {x: -0.57890844, y: -0.16252476, z: -0.09987054, w: 0.7927652}
   TargetScale: {x: 1, y: 1, z: 1}
   TargetRectSize: {x: 0, y: 0, z: 0}
-  TransformPosition: {x: -0.41933385, y: -0.42140272, z: -0.0000018104911}
-  TransformRotation: {x: 0, y: 0, z: 0, w: 1}
+  TransformPosition: {x: -0.5000129, y: -0.43155473, z: -0.008741289}
+  TransformRotation: {x: -0.57890844, y: -0.16252476, z: -0.09987054, w: 0.7927652}
   TransformScale: {x: 1, y: 1, z: 1}
   TransformRectSize: {x: 0, y: 0}
 --- !u!43 &1542877665
@@ -14544,15 +14678,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 0a6a2491386b3be489501ed9d6f51b69, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.2574193
+      value: 1.5072733
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0a6a2491386b3be489501ed9d6f51b69, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.2821118
+      value: 1.3053589
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0a6a2491386b3be489501ed9d6f51b69, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.0012512021
+      value: 0.011368124
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0a6a2491386b3be489501ed9d6f51b69, type: 3}
       propertyPath: m_LocalRotation.w
@@ -14622,7 +14756,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
   Parent: {fileID: 1189691522}
   SiblingIndex: 3
-  LayoutPosition: {x: 1.2579933, y: 1.2946008, z: 0}
+  LayoutPosition: {x: 1.5123345, y: 1.3036206, z: 0}
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
     m_Center: {x: 0.0005739657, y: 0.012489049, z: 0.0012512021}
@@ -14636,11 +14770,11 @@ MonoBehaviour:
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 0, y: 0, z: 0}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
-  TargetPosition: {x: 1.2574193, y: 1.2821118, z: -0.0012512021}
+  TargetPosition: {x: 1.5072733, y: 1.3053589, z: 0.011368124}
   TargetRotation: {x: -0.18943681, y: 0.55771464, z: -0.6961416, w: 0.41043264}
   TargetScale: {x: 1, y: 1, z: 1}
   TargetRectSize: {x: 0, y: 0, z: 0}
-  TransformPosition: {x: 1.2574193, y: 1.2821118, z: -0.0012512021}
+  TransformPosition: {x: 1.5072733, y: 1.3053589, z: 0.011368124}
   TransformRotation: {x: -0.18943681, y: 0.55771464, z: -0.6961416, w: 0.41043264}
   TransformScale: {x: 1, y: 1, z: 1}
   TransformRectSize: {x: 0, y: 0}
@@ -15382,43 +15516,43 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.2580317
+      value: 1.5125395
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.4295467
+      value: 0.43399882
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.000013649464
+      value: 0.0020291805
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.7861479
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.6138871
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.06682698
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0.025462957
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -56.802
+      value: -104.393
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -5.33
+      value: 162.726
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 3.409
+      value: -170.269
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 0483fbf3fcdb60740a9db9ef1f6598ff, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -15460,7 +15594,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
   Parent: {fileID: 1189691522}
   SiblingIndex: 7
-  LayoutPosition: {x: 1.2579933, y: 0.4315336, z: 0}
+  LayoutPosition: {x: 1.5123345, y: 0.4345402, z: 0}
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
     m_Center: {x: -0.000038368627, y: 0.0019869022, z: -0.000013649464}
@@ -15474,12 +15608,12 @@ MonoBehaviour:
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 0, y: 0, z: 0}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
-  TargetPosition: {x: 1.2580317, y: 0.4295467, z: 0.000013649464}
-  TargetRotation: {x: 0, y: 0, z: 0, w: 1}
+  TargetPosition: {x: 1.5125395, y: 0.43399882, z: 0.0020291805}
+  TargetRotation: {x: -0.6138871, y: -0.06682698, z: -0.025462957, w: 0.7861479}
   TargetScale: {x: 1, y: 1, z: 1}
   TargetRectSize: {x: 0, y: 0, z: 0}
-  TransformPosition: {x: 1.2580317, y: 0.4295467, z: 0.000013649464}
-  TransformRotation: {x: 0, y: 0, z: 0, w: 1}
+  TransformPosition: {x: 1.5125395, y: 0.43399882, z: 0.0020291805}
+  TransformRotation: {x: -0.6138871, y: -0.06682698, z: -0.025462957, w: 0.7861479}
   TransformScale: {x: 1, y: 1, z: 1}
   TransformRectSize: {x: 0, y: 0}
 --- !u!1001 &1774475901
@@ -17464,43 +17598,43 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.41955099
+      value: 0.49503487
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.35406837
+      value: 0.42048508
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.0006777644
+      value: 0.0755662
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.76815444
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0.6359639
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0.06923037
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0.026378464
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: -80.922
+      value: -78.722
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -155.605
+      value: -21.856
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 152.676
+      value: 14.066
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 0dea975dd1211a249a51235128b881d6, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -17542,7 +17676,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
   Parent: {fileID: 1189691522}
   SiblingIndex: 6
-  LayoutPosition: {x: 0.4193311, y: 0.4315336, z: 0}
+  LayoutPosition: {x: 0.5041115, y: 0.4345402, z: 0}
   LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
   AdapterBounds:
     m_Center: {x: -0.00021988153, y: 0.077465236, z: -0.0006777644}
@@ -17556,12 +17690,12 @@ MonoBehaviour:
   ComponentScale: {x: 1, y: 1, z: 1}
   FillSize: {x: 0, y: 0, z: 0}
   ShrinkSize: {x: 999999, y: 999999, z: 999999}
-  TargetPosition: {x: 0.41955099, y: 0.35406837, z: 0.0006777644}
-  TargetRotation: {x: 0, y: 0, z: 0, w: 1}
+  TargetPosition: {x: 0.49503487, y: 0.42048508, z: 0.0755662}
+  TargetRotation: {x: -0.6359639, y: -0.06923037, z: -0.026378464, w: 0.76815444}
   TargetScale: {x: 1, y: 1, z: 1}
   TargetRectSize: {x: 0, y: 0, z: 0}
-  TransformPosition: {x: 0.41955099, y: 0.35406837, z: 0.0006777644}
-  TransformRotation: {x: 0, y: 0, z: 0, w: 1}
+  TransformPosition: {x: 0.49503487, y: 0.42048508, z: 0.0755662}
+  TransformRotation: {x: -0.6359639, y: -0.06923037, z: -0.026378464, w: 0.76815444}
   TransformScale: {x: 1, y: 1, z: 1}
   TransformRectSize: {x: 0, y: 0}
 --- !u!1001 &2142548334

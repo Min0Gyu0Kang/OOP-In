@@ -19,14 +19,14 @@ namespace OOPIn
         /// <summary>Called by the session runner when submitted code raises.</summary>
         public static void ReportError(int line, string errorType, string message)
         {
-            var entry = new RunLogEntry
+            var entry = new RunLogEntry()
             {
                 line = line,
                 ok = false,
                 pythonError = true,
                 text = (line > 0 ? "Line " + line + ": " : "") + errorType + ": " + message
             };
-            if (FarmBridgeManager.Instance != null) FarmBridgeManager.Instance.EnqueueLog(entry);
+            if (FarmBridgeManager.Instance != null) FarmBridgeManager.Instance.ReportFailure(entry);
             else RunLog.Add(entry);
         }
 
@@ -41,7 +41,7 @@ namespace OOPIn
         }
     }
 
-    public enum FarmAction { Plow, Remove, Plant, Harvest, LogOnly }
+    public enum FarmAction { Plow, Remove, Plant, Harvest }
 
     public class FarmBridgeManager : MonoBehaviour
     {
@@ -63,13 +63,18 @@ namespace OOPIn
         [Tooltip("Each child is a plant template, named by its model (Carrot, Cabbage_01, ...). " +
                  "Templates are hidden at start and copied onto plots.")]
         public Transform plantsRoot;
-        [Tooltip("Height of a planted copy above its cube.")]
-        public float plantHeight = 1f;
-        [Tooltip("Extra rotation applied to planted copies, if the models need it.")]
+        [Tooltip("Planted copy width as a fraction of its cube's width.")]
+        [Range(0.1f, 1f)] public float plantFootprint = 0.6f;
+        [Tooltip("Tallest a planted copy may be, as a multiple of its cube's height.")]
+        public float plantMaxHeight = 1.5f;
+        [Tooltip("Gap between the cube's top surface and the plant's base.")]
+        public float plantGap = 0f;
+        [Tooltip("Rotation of planted copies in world space, for models authored lying down.")]
         public Vector3 plantEulerOffset;
 
         [Header("Motion")]
-        public float heightOffset = 5f;
+        [Tooltip("Space between a tool's lowest point and the tallest possible plant.")]
+        public float toolClearance = 0.5f;
         [Tooltip("Seconds for a tool to travel to its target. 0 = teleport.")]
         public float moveDuration = 0.35f;
         [Tooltip("Pause after each command before the next one starts.")]
@@ -82,7 +87,6 @@ namespace OOPIn
             public FarmAction action;
             public int index, x, z, line;
             public string plant;
-            public RunLogEntry log;
         }
 
         // Cubes are hidden by disabling renderers/colliders, never SetActive(false): Flexalon
@@ -99,11 +103,21 @@ namespace OOPIn
         private readonly Dictionary<string, Transform> plantTemplates = new Dictionary<string, Transform>();
         private readonly Dictionary<string, int> harvestCounts = new Dictionary<string, int>();
 
-        private readonly Queue<Command> queue = new Queue<Command>();
+        // A run is checked in full before anything plays: Bridge calls only validate and
+        // collect, and CommitRun() plays the list once the script has finished without error.
+        private readonly List<Command> pending = new List<Command>();
+        private bool runFailed;
+        private RunLogEntry runError;
         private Coroutine runner;
 
+        private Transform[] tools;
         private Vector3[] toolHomePositions;
         private Quaternion[] toolHomeRotations;
+        private WaitForSeconds dwell;
+
+        private Transform plantedCrops;
+        private bool placementLogged;
+        private bool placementWarned;
 
         /// <summary>Plant names accepted by Bridge.Plant, sorted.</summary>
         public IEnumerable<string> PlantNames { get { return plantTemplates.Keys.OrderBy(k => k); } }
@@ -137,7 +151,8 @@ namespace OOPIn
             if (hoe == null || shovel == null || sickle == null)
                 Debug.LogError("[FarmBridgeManager] One or more tools not found - assign Hoe/Shovel/Sickle.", this);
 
-            var tools = Tools();
+            tools = new[] { hoe, shovel, sickle };
+            dwell = new WaitForSeconds(dwellSeconds);
             toolHomePositions = new Vector3[tools.Length];
             toolHomeRotations = new Quaternion[tools.Length];
             for (int i = 0; i < tools.Length; i++)
@@ -188,7 +203,8 @@ namespace OOPIn
 
         public bool Enqueue(FarmAction action, int gridX, int gridZ, string plantName, int line)
         {
-            if (plots == null) return false;
+            // After the first error the run is already stopped; later calls change nothing.
+            if (plots == null || runFailed) return false;
 
             string plot = "Plot " + gridX + "," + gridZ;
             if (gridX < 0 || gridX >= columns || gridZ < 0 || gridZ >= Rows)
@@ -238,30 +254,66 @@ namespace OOPIn
             return true;
         }
 
-        /// <summary>Queues a log row so it appears in order with the commands around it.</summary>
-        public void EnqueueLog(RunLogEntry entry)
+        /// <summary>
+        /// Records a Python error. The run stops: nothing already collected will play.
+        /// Only the first error of a run is kept.
+        /// </summary>
+        public void ReportFailure(RunLogEntry entry)
         {
-            Push(new Command { action = FarmAction.LogOnly, log = entry });
+            if (runFailed) return;
+            runFailed = true;
+            runError = entry;
         }
 
         /// <summary>
-        /// Called before each new code submission: drops pending commands, returns tools to
-        /// where they started, hides every cube, destroys planted crops and zeroes harvest counts.
+        /// Called once the submitted script has finished executing. On error, logs the lines
+        /// checked before it plus the error and plays nothing; otherwise plays every command.
+        /// </summary>
+        public void CommitRun()
+        {
+            if (runFailed)
+            {
+                foreach (var cmd in pending)
+                {
+                    RunLog.Add(new RunLogEntry { line = cmd.line, ok = true, text = CheckedText(cmd) });
+                }
+                RunLog.Add(runError);
+                RunLog.Add(new RunLogEntry
+                {
+                    line = runError.line,
+                    ok = false,
+                    text = "Run stopped" + (runError.line > 0 ? " at line " + runError.line : "") +
+                           ": no commands were executed."
+                });
+                pending.Clear();
+                return;
+            }
+
+            if (pending.Count == 0) return;
+            var commands = new List<Command>(pending);
+            pending.Clear();
+            runner = StartCoroutine(PlayRun(commands));
+        }
+
+        /// <summary>
+        /// Called before each new code submission: stops any run in progress, returns every
+        /// tool home and visible, hides every cube, destroys planted crops and zeroes counts.
         /// </summary>
         public void ResetForRun()
         {
-            queue.Clear();
+            pending.Clear();
+            runFailed = false;
             if (runner != null)
             {
                 StopCoroutine(runner);
                 runner = null;
             }
 
-            var tools = Tools();
             for (int i = 0; i < tools.Length; i++)
             {
                 if (tools[i] == null) continue;
                 tools[i].SetPositionAndRotation(toolHomePositions[i], toolHomeRotations[i]);
+                SetVisible(tools[i], true);
             }
 
             harvestCounts.Clear();
@@ -279,93 +331,214 @@ namespace OOPIn
 
         private bool Fail(int line, string text)
         {
-            EnqueueLog(new RunLogEntry { line = line, ok = false, text = text });
+            ReportFailure(new RunLogEntry { line = line, ok = false, text = text });
             return false;
         }
 
         private void Push(Command cmd)
         {
-            queue.Enqueue(cmd);
-            if (runner == null) runner = StartCoroutine(RunQueue());
+            pending.Add(cmd);
         }
 
-        private IEnumerator RunQueue()
+        private static string CheckedText(Command cmd)
         {
-            while (queue.Count > 0)
+            string plot = "Plot " + cmd.x + "," + cmd.z;
+            switch (cmd.action)
             {
-                var cmd = queue.Dequeue();
-                if (cmd.action == FarmAction.LogOnly)
-                {
-                    RunLog.Add(cmd.log);
-                    continue;
-                }
+                case FarmAction.Plow: return plot + " plow checked.";
+                case FarmAction.Remove: return plot + " remove checked.";
+                case FarmAction.Plant: return plot + " plant " + cmd.plant + " checked.";
+                default: return plot + " harvest checked.";
+            }
+        }
 
+        private IEnumerator PlayRun(List<Command> commands)
+        {
+            Transform activeTool = null;
+            int activeCell = -1;
+
+            foreach (var cmd in commands)
+            {
                 var cube = gridRoot.GetChild(cmd.index);
-                yield return MoveTool(ToolFor(cmd.action), cube.position);
+                var tool = ToolFor(cmd.action);
+                var target = tool != null ? ToolTarget(tool, cube) : Vector3.zero;
 
-                string plot = "Plot " + cmd.x + "," + cmd.z;
-                string cleared = plotPlant[cmd.index];
-                string text;
-
-                switch (cmd.action)
+                if (tool != activeTool)
                 {
-                    case FarmAction.Plow:
-                        ClearPlant(cmd.index);
-                        SetVisible(cube, true);
-                        plots[cmd.index] = PlotState.Plowed;
-                        text = plot + " plowed." + (cleared != null ? " " + cleared + " cleared." : "");
-                        break;
-
-                    case FarmAction.Remove:
-                        ClearPlant(cmd.index);
-                        SetVisible(cube, false);
-                        plots[cmd.index] = PlotState.Empty;
-                        text = plot + " removed." + (cleared != null ? " " + cleared + " cleared." : "");
-                        break;
-
-                    case FarmAction.Plant:
-                        SpawnPlant(cmd.index, cmd.plant, cube.position);
-                        plots[cmd.index] = PlotState.Planted;
-                        text = plot + " " + cmd.plant + " planted.";
-                        break;
-
-                    default: // Harvest
-                        ClearPlant(cmd.index);
-                        plots[cmd.index] = PlotState.Plowed;
-                        int count;
-                        harvestCounts.TryGetValue(cleared, out count);
-                        harvestCounts[cleared] = ++count;
-                        text = plot + " " + cleared + " harvested. Current count: " + count + " " + cleared;
-                        break;
+                    // Only one tool is ever visible: the previous one disappears.
+                    if (activeTool != null) SetVisible(activeTool, false);
+                    if (tool != null)
+                    {
+                        SetVisible(tool, true);
+                        // Same cube: swap in place, so it reads as changing tools.
+                        if (cmd.index == activeCell) tool.position = target;
+                        else yield return MoveTool(tool, target);
+                    }
+                    activeTool = tool;
                 }
+                else if (cmd.index != activeCell)
+                {
+                    // Same tool, different cube.
+                    yield return MoveTool(tool, target);
+                }
+                activeCell = cmd.index;
 
-                RunLog.Add(new RunLogEntry { line = cmd.line, ok = true, text = text });
+                RunLog.Add(new RunLogEntry { line = cmd.line, ok = true, text = Apply(cmd, cube) });
 
-                if (dwellSeconds > 0f) yield return new WaitForSeconds(dwellSeconds);
+                if (dwellSeconds > 0f) yield return dwell;
             }
             runner = null;
         }
 
-        private void SpawnPlant(int index, string key, Vector3 cubePosition)
+        private string Apply(Command cmd, Transform cube)
+        {
+            string plot = "Plot " + cmd.x + "," + cmd.z;
+            string cleared = plotPlant[cmd.index];
+
+            switch (cmd.action)
+            {
+                case FarmAction.Plow:
+                    ClearPlant(cmd.index);
+                    SetVisible(cube, true);
+                    plots[cmd.index] = PlotState.Plowed;
+                    return plot + " plowed." + (cleared != null ? " " + cleared + " cleared." : "");
+
+                case FarmAction.Remove:
+                    ClearPlant(cmd.index);
+                    SetVisible(cube, false);
+                    plots[cmd.index] = PlotState.Empty;
+                    return plot + " removed." + (cleared != null ? " " + cleared + " cleared." : "");
+
+                case FarmAction.Plant:
+                    SpawnPlant(cmd.index, cmd.plant, cube);
+                    plots[cmd.index] = PlotState.Planted;
+                    return plot + " " + cmd.plant + " planted.";
+
+                default: // Harvest
+                    ClearPlant(cmd.index);
+                    plots[cmd.index] = PlotState.Plowed;
+                    int count;
+                    harvestCounts.TryGetValue(cleared, out count);
+                    harvestCounts[cleared] = ++count;
+                    return plot + " " + cleared + " harvested. Current count: " + count + " " + cleared;
+            }
+        }
+
+        private void SpawnPlant(int index, string key, Transform cube)
         {
             Transform template;
             if (!plantTemplates.TryGetValue(key, out template)) return;
 
-            var copy = Instantiate(template.gameObject);
+            if (plantedCrops == null)
+            {
+                // Scene root, not under this object: Tools is a Flexalon layout and would
+                // treat the container as one more cell to arrange.
+                plantedCrops = new GameObject("Planted Crops").transform;
+            }
+
+            var copy = Instantiate(template.gameObject, plantedCrops);
             copy.name = key + " (plot " + index + ")";
             // The template is laid out by Flexalon; the copy must not be.
             foreach (var mb in copy.GetComponentsInChildren<MonoBehaviour>(true))
             {
                 if (mb != null && mb.GetType().Namespace == "Flexalon") Destroy(mb);
             }
-            copy.transform.SetParent(null, false);
-            copy.transform.position = cubePosition + Vector3.up * plantHeight;
-            copy.transform.rotation = Quaternion.Euler(plantEulerOffset) * template.localRotation;
-            copy.transform.localScale = template.lossyScale;
             SetVisible(copy.transform, true);
+
+            // The template's transform belongs to the tilted, Flexalon-scaled shelf, so
+            // place the copy by measured bounds instead: upright, fitted, resting on top.
+            var t = copy.transform;
+            t.rotation = Quaternion.Euler(plantEulerOffset);
+            SetWorldScale(t, 1f);
+
+            Bounds cubeBounds, plantBounds;
+            if (!TryGetBounds(cube, out cubeBounds) || !TryGetBounds(t, out plantBounds)
+                || plantBounds.size.x <= 0f || plantBounds.size.z <= 0f || plantBounds.size.y <= 0f)
+            {
+                t.position = cube.position + Vector3.up;
+                if (!placementWarned)
+                {
+                    placementWarned = true;
+                    Debug.LogWarning("[FarmBridgeManager] Could not measure bounds for '" + key +
+                                     "' or its cube; placed at the cube pivot instead.", this);
+                }
+            }
+            else
+            {
+                float fit = plantFootprint * Mathf.Min(cubeBounds.size.x / plantBounds.size.x,
+                                                       cubeBounds.size.z / plantBounds.size.z);
+                float heightCap = plantMaxHeight * cubeBounds.size.y / plantBounds.size.y;
+                SetWorldScale(t, Mathf.Min(fit, heightCap));
+
+                TryGetBounds(t, out plantBounds);
+                var offset = new Vector3(cubeBounds.center.x - plantBounds.center.x,
+                                         cubeBounds.max.y + plantGap - plantBounds.min.y,
+                                         cubeBounds.center.z - plantBounds.center.z);
+                t.position += offset;
+
+                if (!placementLogged)
+                {
+                    placementLogged = true;
+                    TryGetBounds(t, out plantBounds);
+                    Debug.Log("[FarmBridgeManager] First crop '" + copy.name + "': position " + t.position +
+                              ", scale " + t.localScale + ", bounds " + plantBounds + ". Cube bounds " + cubeBounds +
+                              ", plant ceiling Y " + PlantCeilingY(cubeBounds) + ".", this);
+                }
+            }
 
             plotPlant[index] = key;
             plotPlantObjects[index] = copy;
+        }
+
+        /// <summary>Highest point any fitted plant can reach on a cube with these bounds.</summary>
+        private float PlantCeilingY(Bounds cubeBounds)
+        {
+            return cubeBounds.max.y + plantGap + plantMaxHeight * cubeBounds.size.y;
+        }
+
+        /// <summary>
+        /// Hover point for a tool over a cube: its lowest point sits toolClearance above the
+        /// tallest plant that could ever grow there, so no tool overlaps any plant.
+        /// </summary>
+        private Vector3 ToolTarget(Transform tool, Transform cube)
+        {
+            Bounds cubeBounds;
+            if (!TryGetBounds(cube, out cubeBounds))
+            {
+                return cube.position + Vector3.up * (plantMaxHeight + toolClearance + 1f);
+            }
+
+            float bottomOffset = 0f;
+            Bounds toolBounds;
+            if (TryGetBounds(tool, out toolBounds))
+            {
+                bottomOffset = tool.position.y - toolBounds.min.y;
+            }
+
+            float y = PlantCeilingY(cubeBounds) + toolClearance + bottomOffset;
+            // Centre the tool's bounds, not its pivot, over the cube.
+            float dx = tool.position.x - toolBounds.center.x;
+            float dz = tool.position.z - toolBounds.center.z;
+            return new Vector3(cubeBounds.center.x + dx, y, cubeBounds.center.z + dz);
+        }
+
+        // Renderer.bounds stays valid while a renderer is disabled, so hidden cubes/tools measure too.
+        private static bool TryGetBounds(Transform target, out Bounds bounds)
+        {
+            bounds = new Bounds();
+            bool found = false;
+            foreach (var r in target.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!found) { bounds = r.bounds; found = true; }
+                else bounds.Encapsulate(r.bounds);
+            }
+            return found;
+        }
+
+        private static void SetWorldScale(Transform t, float uniform)
+        {
+            var parentScale = t.parent != null ? t.parent.lossyScale : Vector3.one;
+            t.localScale = new Vector3(uniform / parentScale.x, uniform / parentScale.y, uniform / parentScale.z);
         }
 
         private void ClearPlant(int index)
@@ -414,11 +587,10 @@ namespace OOPIn
             foreach (var c in target.GetComponentsInChildren<Collider>(true)) c.enabled = visible;
         }
 
-        private IEnumerator MoveTool(Transform tool, Vector3 cubePosition)
+        private IEnumerator MoveTool(Transform tool, Vector3 destination)
         {
             if (tool == null) yield break;
 
-            var destination = new Vector3(cubePosition.x, cubePosition.y + heightOffset, cubePosition.z);
             if (moveDuration <= 0f)
             {
                 tool.position = destination;
@@ -432,11 +604,6 @@ namespace OOPIn
                 yield return null;
             }
             tool.position = destination;
-        }
-
-        private Transform[] Tools()
-        {
-            return new[] { hoe, shovel, sickle };
         }
 
         private static Transform FindByName(System.Func<Transform, bool> filter, params string[] names)
