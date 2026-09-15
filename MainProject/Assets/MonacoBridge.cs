@@ -55,6 +55,7 @@ public class MonacoBridge : MonoBehaviour
         {
             webViewController.MessageReceived += OnMessageFromPage;
         }
+        OOPIn.RunLog.Logged += OnRunLogged;
     }
 
     private void OnDisable()
@@ -63,6 +64,18 @@ public class MonacoBridge : MonoBehaviour
         {
             webViewController.MessageReceived -= OnMessageFromPage;
         }
+        OOPIn.RunLog.Logged -= OnRunLogged;
+    }
+
+    // Python exceptions get a red squiggle on their line in the editor, like VS Code.
+    private void OnRunLogged(OOPIn.RunLogEntry entry)
+    {
+        if (!entry.pythonError || entry.line <= 0 || webViewController == null)
+        {
+            return;
+        }
+        webViewController.EvaluateJS("window.markError && window.markError(" + entry.line + ", " +
+                                     WebViewController.ToJsString(entry.text) + ");");
     }
 
     private void OnMessageFromPage(string message)

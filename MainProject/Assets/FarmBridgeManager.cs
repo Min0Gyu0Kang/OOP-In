@@ -1,19 +1,34 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace OOPIn
 {
     /// <summary>
-    /// Python-facing entry point. Python (pythonnet) can only import namespaced types, so
-    /// editor code reaches this as <c>from OOPIn import Bridge</c>.
+    /// Python-facing entry point. Python (pythonnet) can only import namespaced types. The
+    /// session bootstrap wraps this so each call also passes the editor line it came from.
     /// </summary>
     public static class Bridge
     {
-        public static bool Plow(int gridX, int gridZ) { return Run(m => m.Enqueue(FarmAction.Plow, gridX, gridZ)); }
-        public static bool Remove(int gridX, int gridZ) { return Run(m => m.Enqueue(FarmAction.Remove, gridX, gridZ)); }
-        public static bool Plant(int gridX, int gridZ) { return Run(m => m.Enqueue(FarmAction.Plant, gridX, gridZ)); }
-        public static bool Harvest(int gridX, int gridZ) { return Run(m => m.Enqueue(FarmAction.Harvest, gridX, gridZ)); }
+        public static bool Plow(int gridX, int gridZ, int line) { return Run(m => m.Enqueue(FarmAction.Plow, gridX, gridZ, null, line)); }
+        public static bool Remove(int gridX, int gridZ, int line) { return Run(m => m.Enqueue(FarmAction.Remove, gridX, gridZ, null, line)); }
+        public static bool Plant(int gridX, int gridZ, string plantName, int line) { return Run(m => m.Enqueue(FarmAction.Plant, gridX, gridZ, plantName, line)); }
+        public static bool Harvest(int gridX, int gridZ, int line) { return Run(m => m.Enqueue(FarmAction.Harvest, gridX, gridZ, null, line)); }
+
+        /// <summary>Called by the session runner when submitted code raises.</summary>
+        public static void ReportError(int line, string errorType, string message)
+        {
+            var entry = new RunLogEntry
+            {
+                line = line,
+                ok = false,
+                pythonError = true,
+                text = (line > 0 ? "Line " + line + ": " : "") + errorType + ": " + message
+            };
+            if (FarmBridgeManager.Instance != null) FarmBridgeManager.Instance.EnqueueLog(entry);
+            else RunLog.Add(entry);
+        }
 
         private static bool Run(System.Func<FarmBridgeManager, bool> action)
         {
@@ -26,7 +41,7 @@ namespace OOPIn
         }
     }
 
-    public enum FarmAction { Plow, Remove, Plant, Harvest }
+    public enum FarmAction { Plow, Remove, Plant, Harvest, LogOnly }
 
     public class FarmBridgeManager : MonoBehaviour
     {
@@ -44,6 +59,15 @@ namespace OOPIn
         public Transform shovel;
         public Transform sickle;
 
+        [Header("Plants (found at Game/Plants/Grid Layout (1) when empty)")]
+        [Tooltip("Each child is a plant template, named by its model (Carrot, Cabbage_01, ...). " +
+                 "Templates are hidden at start and copied onto plots.")]
+        public Transform plantsRoot;
+        [Tooltip("Height of a planted copy above its cube.")]
+        public float plantHeight = 1f;
+        [Tooltip("Extra rotation applied to planted copies, if the models need it.")]
+        public Vector3 plantEulerOffset;
+
         [Header("Motion")]
         public float heightOffset = 5f;
         [Tooltip("Seconds for a tool to travel to its target. 0 = teleport.")]
@@ -51,25 +75,40 @@ namespace OOPIn
         [Tooltip("Pause after each command before the next one starts.")]
         public float dwellSeconds = 0.2f;
 
+        private enum PlotState { Empty, Plowed, Planted }
+
         private struct Command
         {
             public FarmAction action;
-            public int index;
+            public int index, x, z, line;
+            public string plant;
+            public RunLogEntry log;
         }
 
         // Cubes are hidden by disabling renderers/colliders, never SetActive(false): Flexalon
         // skips inactive children and reassigns cells in child order, so deactivating one
         // would slide every later cube into its cell.
-        private bool[] visibleCells;
-        // What visibility will be once the queue drains - lets Plow(1,1); Plant(1,1) in one
-        // submission validate before the plow has actually played.
-        private bool[] projectedVisible;
+        private PlotState[] plots;
+        private string[] plotPlant;
+        private GameObject[] plotPlantObjects;
+
+        // State once the queue drains, so a whole script validates in order before it plays.
+        private PlotState[] projectedPlots;
+        private string[] projectedPlant;
+
+        private readonly Dictionary<string, Transform> plantTemplates = new Dictionary<string, Transform>();
+        private readonly Dictionary<string, int> harvestCounts = new Dictionary<string, int>();
 
         private readonly Queue<Command> queue = new Queue<Command>();
         private Coroutine runner;
 
         private Vector3[] toolHomePositions;
         private Quaternion[] toolHomeRotations;
+
+        /// <summary>Plant names accepted by Bridge.Plant, sorted.</summary>
+        public IEnumerable<string> PlantNames { get { return plantTemplates.Keys.OrderBy(k => k); } }
+
+        private int Rows { get { return gridRoot == null || columns <= 0 ? 0 : gridRoot.childCount / columns; } }
 
         private void Awake()
         {
@@ -81,12 +120,20 @@ namespace OOPIn
             }
             Instance = this;
 
-            if (gridRoot == null) gridRoot = FindByName("Grid Layout (1)", "Grid_Layout");
-            if (hoe == null) hoe = FindByName("Hoe");
-            if (shovel == null) shovel = FindByName("Shovel", "Spade");
-            if (sickle == null) sickle = FindByName("Sickle");
+            // Two objects are named "Grid Layout (1)" (cubes and plants), so the plants one is
+            // excluded by parent and found by path instead.
+            if (gridRoot == null) gridRoot = FindByName(t => t.parent == null || t.parent.name != "Plants", "Grid Layout (1)", "Grid_Layout");
+            if (plantsRoot == null)
+            {
+                var plants = FindByName(null, "Plants");
+                if (plants != null) plantsRoot = plants.Find("Grid Layout (1)");
+            }
+            if (hoe == null) hoe = FindByName(null, "Hoe");
+            if (shovel == null) shovel = FindByName(null, "Shovel", "Spade");
+            if (sickle == null) sickle = FindByName(null, "Sickle");
 
             if (gridRoot == null) Debug.LogError("[FarmBridgeManager] Grid root not found - assign it.", this);
+            if (plantsRoot == null) Debug.LogError("[FarmBridgeManager] Plants root not found - assign Game/Plants/Grid Layout (1).", this);
             if (hoe == null || shovel == null || sickle == null)
                 Debug.LogError("[FarmBridgeManager] One or more tools not found - assign Hoe/Shovel/Sickle.", this);
 
@@ -103,21 +150,34 @@ namespace OOPIn
 
         private void Start()
         {
+            if (plantsRoot != null)
+            {
+                foreach (Transform child in plantsRoot)
+                {
+                    var key = BaseName(child.name);
+                    if (!plantTemplates.ContainsKey(key)) plantTemplates.Add(key, child);
+                    SetVisible(child, false);
+                }
+            }
+
             if (gridRoot == null) return;
 
             int count = gridRoot.childCount;
-            visibleCells = new bool[count];
-            projectedVisible = new bool[count];
+            plots = new PlotState[count];
+            plotPlant = new string[count];
+            plotPlantObjects = new GameObject[count];
+            projectedPlots = new PlotState[count];
+            projectedPlant = new string[count];
             for (int i = 0; i < count; i++)
             {
-                SetCubeVisible(gridRoot.GetChild(i), false);
+                SetVisible(gridRoot.GetChild(i), false);
             }
 
             if (count > 0)
             {
-                Debug.Log("[FarmBridgeManager] " + columns + "x" + (count / columns) + " grid. Cell (0,0) at " +
+                Debug.Log("[FarmBridgeManager] " + columns + "x" + Rows + " grid. Cell (0,0) at " +
                           gridRoot.GetChild(0).position + ", last cell at " + gridRoot.GetChild(count - 1).position +
-                          ". gridX runs along columns, gridZ along rows.", this);
+                          ". Plants: " + string.Join(", ", PlantNames), this);
             }
         }
 
@@ -126,46 +186,69 @@ namespace OOPIn
             if (Instance == this) Instance = null;
         }
 
-        public bool Enqueue(FarmAction action, int gridX, int gridZ)
+        public bool Enqueue(FarmAction action, int gridX, int gridZ, string plantName, int line)
         {
-            int index;
-            if (!TryGetIndex(gridX, gridZ, out index)) return false;
+            if (plots == null) return false;
+
+            string plot = "Plot " + gridX + "," + gridZ;
+            if (gridX < 0 || gridX >= columns || gridZ < 0 || gridZ >= Rows)
+            {
+                return Fail(line, plot + " does not exist (grid is " + columns + "x" + Rows + ").");
+            }
+
+            int index = gridZ * columns + gridX;
+            var state = projectedPlots[index];
+            string planted = projectedPlant[index];
 
             switch (action)
             {
                 case FarmAction.Plow:
-                    projectedVisible[index] = true;
+                    if (state == PlotState.Plowed) return Fail(line, plot + " failed to plow: already plowed.");
+                    projectedPlots[index] = PlotState.Plowed;
+                    projectedPlant[index] = null;
                     break;
+
                 case FarmAction.Remove:
-                    if (!projectedVisible[index])
-                    {
-                        Debug.LogWarning("[FarmBridgeManager] Cell (" + gridX + ", " + gridZ + ") has no cube to remove.", this);
-                        return false;
-                    }
-                    projectedVisible[index] = false;
+                    if (state == PlotState.Empty) return Fail(line, plot + " failed to remove: plot is not plowed.");
+                    projectedPlots[index] = PlotState.Empty;
+                    projectedPlant[index] = null;
                     break;
-                default:
-                    if (!projectedVisible[index])
-                    {
-                        Debug.LogWarning("[FarmBridgeManager] Cell (" + gridX + ", " + gridZ + ") is not plowed - plow it first.", this);
-                        return false;
-                    }
+
+                case FarmAction.Plant:
+                    string key = ResolvePlant(plantName);
+                    string shown = string.IsNullOrEmpty(plantName) ? "(no name)" : plantName;
+                    if (key == null)
+                        return Fail(line, plot + " failed to plant " + shown + ": unknown plant. Available: " + string.Join(", ", PlantNames));
+                    if (state == PlotState.Empty) return Fail(line, plot + " failed to plant " + key + " in empty plot.");
+                    if (state == PlotState.Planted) return Fail(line, plot + " failed to plant " + key + ": " + planted + " is already planted.");
+                    projectedPlots[index] = PlotState.Planted;
+                    projectedPlant[index] = key;
+                    plantName = key;
+                    break;
+
+                case FarmAction.Harvest:
+                    if (state == PlotState.Empty) return Fail(line, plot + " failed to harvest: plot is not plowed.");
+                    if (state == PlotState.Plowed) return Fail(line, plot + " failed to harvest: nothing planted.");
+                    projectedPlots[index] = PlotState.Plowed;
+                    projectedPlant[index] = null;
                     break;
             }
 
-            queue.Enqueue(new Command { action = action, index = index });
-            if (runner == null)
-            {
-                runner = StartCoroutine(RunQueue());
-            }
+            Push(new Command { action = action, index = index, x = gridX, z = gridZ, line = line, plant = plantName });
             return true;
         }
 
+        /// <summary>Queues a log row so it appears in order with the commands around it.</summary>
+        public void EnqueueLog(RunLogEntry entry)
+        {
+            Push(new Command { action = FarmAction.LogOnly, log = entry });
+        }
+
         /// <summary>
-        /// Drops pending commands, returns every tool to where it started and hides every cube. Called before
-        /// each new code submission.
+        /// Called before each new code submission: drops pending commands, returns tools to
+        /// where they started, hides every cube, destroys planted crops and zeroes harvest counts.
         /// </summary>
-        public void ResetTools()
+        public void ResetForRun()
         {
             queue.Clear();
             if (runner != null)
@@ -181,13 +264,29 @@ namespace OOPIn
                 tools[i].SetPositionAndRotation(toolHomePositions[i], toolHomeRotations[i]);
             }
 
-            if (visibleCells == null) return;
+            harvestCounts.Clear();
+            if (plots == null) return;
 
-            for (int i = 0; i < visibleCells.Length; i++)
+            for (int i = 0; i < plots.Length; i++)
             {
-                SetCubeVisible(gridRoot.GetChild(i), false);
-                projectedVisible[i] = false;
+                ClearPlant(i);
+                SetVisible(gridRoot.GetChild(i), false);
+                plots[i] = PlotState.Empty;
+                projectedPlots[i] = PlotState.Empty;
+                projectedPlant[i] = null;
             }
+        }
+
+        private bool Fail(int line, string text)
+        {
+            EnqueueLog(new RunLogEntry { line = line, ok = false, text = text });
+            return false;
+        }
+
+        private void Push(Command cmd)
+        {
+            queue.Enqueue(cmd);
+            if (runner == null) runner = StartCoroutine(RunQueue());
         }
 
         private IEnumerator RunQueue()
@@ -195,16 +294,108 @@ namespace OOPIn
             while (queue.Count > 0)
             {
                 var cmd = queue.Dequeue();
-                var cube = gridRoot.GetChild(cmd.index);
+                if (cmd.action == FarmAction.LogOnly)
+                {
+                    RunLog.Add(cmd.log);
+                    continue;
+                }
 
+                var cube = gridRoot.GetChild(cmd.index);
                 yield return MoveTool(ToolFor(cmd.action), cube.position);
 
-                if (cmd.action == FarmAction.Plow) SetCubeVisible(cube, true);
-                else if (cmd.action == FarmAction.Remove) SetCubeVisible(cube, false);
+                string plot = "Plot " + cmd.x + "," + cmd.z;
+                string cleared = plotPlant[cmd.index];
+                string text;
+
+                switch (cmd.action)
+                {
+                    case FarmAction.Plow:
+                        ClearPlant(cmd.index);
+                        SetVisible(cube, true);
+                        plots[cmd.index] = PlotState.Plowed;
+                        text = plot + " plowed." + (cleared != null ? " " + cleared + " cleared." : "");
+                        break;
+
+                    case FarmAction.Remove:
+                        ClearPlant(cmd.index);
+                        SetVisible(cube, false);
+                        plots[cmd.index] = PlotState.Empty;
+                        text = plot + " removed." + (cleared != null ? " " + cleared + " cleared." : "");
+                        break;
+
+                    case FarmAction.Plant:
+                        SpawnPlant(cmd.index, cmd.plant, cube.position);
+                        plots[cmd.index] = PlotState.Planted;
+                        text = plot + " " + cmd.plant + " planted.";
+                        break;
+
+                    default: // Harvest
+                        ClearPlant(cmd.index);
+                        plots[cmd.index] = PlotState.Plowed;
+                        int count;
+                        harvestCounts.TryGetValue(cleared, out count);
+                        harvestCounts[cleared] = ++count;
+                        text = plot + " " + cleared + " harvested. Current count: " + count + " " + cleared;
+                        break;
+                }
+
+                RunLog.Add(new RunLogEntry { line = cmd.line, ok = true, text = text });
 
                 if (dwellSeconds > 0f) yield return new WaitForSeconds(dwellSeconds);
             }
             runner = null;
+        }
+
+        private void SpawnPlant(int index, string key, Vector3 cubePosition)
+        {
+            Transform template;
+            if (!plantTemplates.TryGetValue(key, out template)) return;
+
+            var copy = Instantiate(template.gameObject);
+            copy.name = key + " (plot " + index + ")";
+            // The template is laid out by Flexalon; the copy must not be.
+            foreach (var mb in copy.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (mb != null && mb.GetType().Namespace == "Flexalon") Destroy(mb);
+            }
+            copy.transform.SetParent(null, false);
+            copy.transform.position = cubePosition + Vector3.up * plantHeight;
+            copy.transform.rotation = Quaternion.Euler(plantEulerOffset) * template.localRotation;
+            copy.transform.localScale = template.lossyScale;
+            SetVisible(copy.transform, true);
+
+            plotPlant[index] = key;
+            plotPlantObjects[index] = copy;
+        }
+
+        private void ClearPlant(int index)
+        {
+            if (plotPlantObjects[index] != null) Destroy(plotPlantObjects[index]);
+            plotPlantObjects[index] = null;
+            plotPlant[index] = null;
+        }
+
+        /// <summary>Case-insensitive; "cabbage" also matches "Cabbage_01".</summary>
+        private string ResolvePlant(string plantName)
+        {
+            if (string.IsNullOrEmpty(plantName)) return null;
+            var wanted = BaseName(plantName);
+            foreach (var key in plantTemplates.Keys)
+            {
+                if (string.Equals(key, wanted, System.StringComparison.OrdinalIgnoreCase)) return key;
+            }
+            return null;
+        }
+
+        /// <summary>"Cabbage_01" -> "Cabbage", "Carrot (1)" -> "Carrot".</summary>
+        private static string BaseName(string raw)
+        {
+            var s = raw.Trim();
+            int paren = s.IndexOf(" (", System.StringComparison.Ordinal);
+            if (paren > 0) s = s.Substring(0, paren);
+            int underscore = s.IndexOf('_');
+            if (underscore > 0) s = s.Substring(0, underscore);
+            return s;
         }
 
         private Transform ToolFor(FarmAction action)
@@ -217,33 +408,10 @@ namespace OOPIn
             }
         }
 
-        private void SetCubeVisible(Transform cube, bool visible)
+        private static void SetVisible(Transform target, bool visible)
         {
-            foreach (var r in cube.GetComponentsInChildren<Renderer>(true)) r.enabled = visible;
-            foreach (var c in cube.GetComponentsInChildren<Collider>(true)) c.enabled = visible;
-
-            int index = cube.GetSiblingIndex();
-            if (visibleCells != null && index < visibleCells.Length)
-            {
-                visibleCells[index] = visible;
-            }
-        }
-
-        private bool TryGetIndex(int gridX, int gridZ, out int index)
-        {
-            index = -1;
-            if (gridRoot == null || columns <= 0 || visibleCells == null) return false;
-
-            int rows = gridRoot.childCount / columns;
-            if (gridX < 0 || gridX >= columns || gridZ < 0 || gridZ >= rows)
-            {
-                Debug.LogError("[FarmBridgeManager] Cell (" + gridX + ", " + gridZ + ") is outside the " +
-                               columns + "x" + rows + " grid.", this);
-                return false;
-            }
-
-            index = gridZ * columns + gridX;
-            return true;
+            foreach (var r in target.GetComponentsInChildren<Renderer>(true)) r.enabled = visible;
+            foreach (var c in target.GetComponentsInChildren<Collider>(true)) c.enabled = visible;
         }
 
         private IEnumerator MoveTool(Transform tool, Vector3 cubePosition)
@@ -271,7 +439,7 @@ namespace OOPIn
             return new[] { hoe, shovel, sickle };
         }
 
-        private static Transform FindByName(params string[] names)
+        private static Transform FindByName(System.Func<Transform, bool> filter, params string[] names)
         {
 #if UNITY_2023_1_OR_NEWER
             var all = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
@@ -282,7 +450,7 @@ namespace OOPIn
             {
                 foreach (var t in all)
                 {
-                    if (t.name == n && t.gameObject.scene.IsValid()) return t;
+                    if (t.name == n && t.gameObject.scene.IsValid() && (filter == null || filter(t))) return t;
                 }
             }
             return null;

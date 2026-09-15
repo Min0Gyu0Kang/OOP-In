@@ -40,7 +40,7 @@
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
         require(['vs/editor/editor.main'], function () {
             editor = monaco.editor.create(document.getElementById('container'), {
-                value: "# Bridge.Plow / Remove / Plant / Harvest (gridX, gridZ)\nBridge.Plow(0, 0)\n",
+                value: "# Bridge.Plow(x, z)  Bridge.Remove(x, z)\n# Bridge.Plant(x, z, \"Carrot\")  Bridge.Harvest(x, z)\nBridge.Plow(0, 0)\nBridge.Plant(0, 0, \"Carrot\")\nBridge.Harvest(0, 0)\n",
                 language: 'python',
                 theme: 'vs-dark',
                 automaticLayout: true,
@@ -72,9 +72,101 @@
                 return;
             }
 
+            monaco.editor.setModelMarkers(editor.getModel(), 'unity-run', []);
             var code = editor.getValue();
             window.Unity.call('run-python?code=' + encodeURIComponent(code));
         }
+
+        // Called from Unity (MonacoBridge) when a run raises: red squiggle + hover message.
+        window.markError = function (line, message) {
+            if (!editor) { return; }
+            var model = editor.getModel();
+            line = Math.max(1, Math.min(line, model.getLineCount()));
+            monaco.editor.setModelMarkers(model, 'unity-run', [{
+                severity: monaco.MarkerSeverity.Error,
+                message: message,
+                startLineNumber: line,
+                startColumn: model.getLineFirstNonWhitespaceColumn(line) || 1,
+                endLineNumber: line,
+                endColumn: model.getLineMaxColumn(line)
+            }]);
+            editor.revealLineInCenterIfOutsideViewport(line);
+        };
+
+        // --- Keys Unity forwards itself (WebViewKeyboardBridge) --------------------------
+        // The native webview only receives printable text, so navigation and shortcuts
+        // arrive here as named actions and are run as Monaco commands.
+        function suggestVisible() {
+            return !!document.querySelector('.suggest-widget.visible');
+        }
+
+        window.unityKey = function (name, shift) {
+            if (!editor) { return; }
+            editor.focus();
+            var sel = shift ? 'Select' : '';
+            var cmd = null;
+            switch (name) {
+                case 'left': cmd = 'cursorLeft' + sel; break;
+                case 'right': cmd = 'cursorRight' + sel; break;
+                case 'up': cmd = suggestVisible() ? 'selectPrevSuggestion' : 'cursorUp' + sel; break;
+                case 'down': cmd = suggestVisible() ? 'selectNextSuggestion' : 'cursorDown' + sel; break;
+                case 'home': cmd = 'cursorHome' + sel; break;
+                case 'end': cmd = 'cursorEnd' + sel; break;
+                case 'pageUp': cmd = 'cursorPageUp' + sel; break;
+                case 'pageDown': cmd = 'cursorPageDown' + sel; break;
+                case 'wordLeft': cmd = 'cursorWordLeft' + sel; break;
+                case 'wordRight': cmd = 'cursorWordEndRight' + sel; break;
+                case 'top': cmd = 'cursorTop' + sel; break;
+                case 'bottom': cmd = 'cursorBottom' + sel; break;
+                case 'delete': cmd = 'deleteRight'; break;
+                case 'escape': cmd = 'hideSuggestWidget'; break;
+                case 'undo': cmd = 'undo'; break;
+                case 'redo': cmd = 'redo'; break;
+                case 'selectAll': cmd = 'editor.action.selectAll'; break;
+                case 'comment': cmd = 'editor.action.commentLine'; break;
+                case 'run': sendCodeToUnity(); return;
+            }
+            if (cmd) { editor.trigger('unity', cmd, null); }
+        };
+
+        window.unityCopy = function (cut) {
+            if (!editor) { return; }
+            editor.focus();
+            var model = editor.getModel();
+            var selections = editor.getSelections();
+            var text = selections.map(function (s) { return model.getValueInRange(s); }).join('\n');
+            // VS Code copies the whole line when nothing is selected.
+            var wholeLine = text === '';
+            if (wholeLine) {
+                var ln = editor.getPosition().lineNumber;
+                text = model.getLineContent(ln) + '\n';
+            }
+            if (window.Unity && window.Unity.call) {
+                window.Unity.call('clipboard?text=' + encodeURIComponent(text));
+            }
+            if (cut) {
+                if (wholeLine) {
+                    editor.trigger('unity', 'editor.action.deleteLines', null);
+                } else {
+                    editor.executeEdits('unity-cut', selections.map(function (s) {
+                        return { range: s, text: '' };
+                    }));
+                }
+            }
+        };
+
+        window.unityPaste = function (text) {
+            if (!editor || !text) { return; }
+            editor.focus();
+            // Inserted as an edit, not typed, so auto-indent and auto-closing brackets
+            // don't mangle multi-line code.
+            text = text.replace(/\r\n/g, '\n');
+            editor.pushUndoStop();
+            editor.executeEdits('unity-paste', editor.getSelections().map(function (s) {
+                return { range: s, text: text, forceMoveMarkers: true };
+            }));
+            editor.pushUndoStop();
+        };
     </script>
 </body>
 </html>

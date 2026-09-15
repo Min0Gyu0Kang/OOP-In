@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        html, body {
+            width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
+            background: #1e1e1e; color: #d4d4d4;
+            font-family: Segoe UI, Helvetica, Arial, sans-serif; font-size: 13px;
+        }
+        #layout { display: flex; flex-direction: column; height: 100%; }
+        #tabs {
+            flex: 0 0 auto; display: flex; background: #252526; border-bottom: 1px solid #333;
+        }
+        .tab {
+            padding: 6px 14px; cursor: pointer; color: #999; border-bottom: 2px solid transparent;
+            user-select: none;
+        }
+        .tab.active { color: #fff; border-bottom-color: #0e639c; }
+        #summary { margin-left: auto; padding: 6px 12px; color: #888; }
+        .pane { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: none; }
+        .pane.active { display: block; }
+
+        #log { font-family: Consolas, 'Courier New', monospace; }
+        .row { display: flex; gap: 8px; padding: 3px 10px; border-bottom: 1px solid #262626; }
+        .row .icon { flex: 0 0 14px; font-weight: bold; }
+        .row .ln { flex: 0 0 44px; color: #858585; text-align: right; }
+        .row .text { flex: 1 1 auto; white-space: pre-wrap; word-break: break-word; }
+        .ok .icon { color: #4ec9b0; }
+        .fail { background: rgba(244, 71, 71, 0.08); }
+        .fail .icon, .fail .text { color: #f48771; }
+        #empty { padding: 12px; color: #6a6a6a; }
+
+        #manual { padding: 10px 14px; line-height: 1.5; }
+        #manual h3 { margin: 12px 0 4px; font-size: 13px; color: #fff; }
+        #manual code { font-family: Consolas, 'Courier New', monospace; color: #dcdcaa; }
+        #manual ul { margin: 2px 0 6px; padding-left: 18px; }
+        #manual .err { color: #f48771; }
+        #plants code { color: #ce9178; }
+    </style>
+</head>
+<body>
+    <div id="layout">
+        <div id="tabs">
+            <div class="tab active" data-pane="log-pane">Results</div>
+            <div class="tab" data-pane="manual">Commands</div>
+            <div id="summary"></div>
+        </div>
+
+        <div id="log-pane" class="pane active">
+            <div id="log"></div>
+            <div id="empty">Run code in the editor to see results here.</div>
+        </div>
+
+        <div id="manual" class="pane">
+            <p>Grid coordinates are <code>x</code> (column) and <code>z</code> (row), from <code>0</code> to <code>4</code>.
+               Commands run in order; a failed command is skipped and the rest continue.</p>
+
+            <h3><code>Bridge.Plow(x, z)</code></h3>
+            <ul>
+                <li>Empty plot: shows the cube.</li>
+                <li>Planted plot: clears the plant (not counted).</li>
+                <li class="err">Fails if the plot is already plowed.</li>
+            </ul>
+
+            <h3><code>Bridge.Remove(x, z)</code></h3>
+            <ul>
+                <li>Hides the cube; clears any plant (not counted).</li>
+                <li class="err">Fails if the plot is empty.</li>
+            </ul>
+
+            <h3><code>Bridge.Plant(x, z, "name")</code></h3>
+            <ul>
+                <li>Places the plant on a plowed plot.</li>
+                <li class="err">Fails on an empty plot, an already planted plot, or an unknown name.</li>
+            </ul>
+            <div id="plants"></div>
+
+            <h3><code>Bridge.Harvest(x, z)</code></h3>
+            <ul>
+                <li>Removes the plant and adds 1 to its harvest count.</li>
+                <li class="err">Fails on an empty plot or a plot with nothing planted.</li>
+            </ul>
+
+            <h3>Each run</h3>
+            <ul>
+                <li>Starts from an empty farm: cubes hidden, plants and counts cleared.</li>
+                <li>Python errors stop the script and are underlined in the editor.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        var logEl = document.getElementById('log');
+        var emptyEl = document.getElementById('empty');
+        var summaryEl = document.getElementById('summary');
+        var okCount = 0, failCount = 0;
+
+        document.querySelectorAll('.tab').forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+                document.querySelectorAll('.pane').forEach(function (p) { p.classList.remove('active'); });
+                tab.classList.add('active');
+                document.getElementById(tab.getAttribute('data-pane')).classList.add('active');
+            });
+        });
+
+        function updateSummary() {
+            summaryEl.textContent = (okCount + failCount) === 0 ? '' : okCount + ' ok, ' + failCount + ' failed';
+        }
+
+        window.clearLog = function () {
+            logEl.innerHTML = '';
+            okCount = failCount = 0;
+            emptyEl.style.display = 'block';
+            updateSummary();
+        };
+
+        window.appendLog = function (ok, line, text) {
+            var row = document.createElement('div');
+            row.className = 'row ' + (ok ? 'ok' : 'fail');
+
+            var icon = document.createElement('span');
+            icon.className = 'icon';
+            icon.textContent = ok ? '✔' : '✖';
+
+            var ln = document.createElement('span');
+            ln.className = 'ln';
+            ln.textContent = line > 0 ? 'Ln ' + line : '';
+
+            var body = document.createElement('span');
+            body.className = 'text';
+            body.textContent = text;
+
+            row.appendChild(icon);
+            row.appendChild(ln);
+            row.appendChild(body);
+            logEl.appendChild(row);
+
+            if (ok) { okCount++; } else { failCount++; }
+            emptyEl.style.display = 'none';
+            updateSummary();
+
+            var pane = document.getElementById('log-pane');
+            pane.scrollTop = pane.scrollHeight;
+        };
+
+        window.setPlantNames = function (names) {
+            var el = document.getElementById('plants');
+            el.innerHTML = 'Plant names: ';
+            names.forEach(function (n, i) {
+                var c = document.createElement('code');
+                c.textContent = '"' + n + '"';
+                el.appendChild(c);
+                if (i < names.length - 1) { el.appendChild(document.createTextNode(', ')); }
+            });
+        };
+    </script>
+</body>
+</html>

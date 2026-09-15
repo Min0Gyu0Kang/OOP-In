@@ -86,6 +86,8 @@ public class WebViewObject : MonoBehaviour
     byte[] textureDataBuffer;
     string inputString = "";
     bool hasFocus;
+    /// <summary>True after a click inside the webview's rect, until a click outside it.</summary>
+    public bool HasFocus { get { return hasFocus; } }
 #elif UNITY_IPHONE
     IntPtr webView;
 #elif UNITY_ANDROID
@@ -1762,6 +1764,14 @@ public class WebViewObject : MonoBehaviour
             break;
         case EventType.Repaint:
             while (!string.IsNullOrEmpty(inputString)) {
+                var ch = inputString[0];
+                // Ctrl+letter arrives as a control character (Ctrl+C = 0x03) and Delete
+                // as 0x7F. Shortcuts and navigation keys are forwarded separately (see
+                // WebViewKeyboardBridge), so sending these too would double-fire them.
+                if ((ch < 0x20 && ch != '\b' && ch != '\t' && ch != '\n' && ch != '\r') || ch == 0x7F) {
+                    inputString = inputString.Substring(1);
+                    continue;
+                }
                 var keyChars = inputString.Substring(0, 1);
                 var keyCode = (ushort)inputString[0];
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
