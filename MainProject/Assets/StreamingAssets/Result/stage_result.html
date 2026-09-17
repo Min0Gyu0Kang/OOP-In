@@ -30,7 +30,12 @@
             font-size: 5.5vw; line-height: 1; cursor: pointer;
             background: none; border: 0; padding: 0; color: #000; font-family: inherit;
         }
-        #next:hover { text-decoration: underline; }
+        #next:hover, #retry:hover { text-decoration: underline; }
+        #retry {
+            position: absolute; left: 2.5%; bottom: 6%;
+            font-size: 5.5vw; line-height: 1; cursor: pointer;
+            background: none; border: 0; padding: 0; color: #000; font-family: inherit;
+        }
     </style>
 </head>
 <body>
@@ -49,6 +54,7 @@
                 <span class="label">O(logn)</span>
             </div>
         </div>
+        <button id="retry">↺Retry</button>
         <button id="next">Next→</button>
     </div>
 
@@ -72,11 +78,13 @@
             });
         };
 
-        document.getElementById('next').addEventListener('click', function () {
+        function send(message) {
             if (window.Unity && typeof window.Unity.call === 'function') {
-                window.Unity.call('next-stage');
+                window.Unity.call(message);
             }
-        });
+        }
+        document.getElementById('next').addEventListener('click', function () { send('next-stage'); });
+        document.getElementById('retry').addEventListener('click', function () { send('retry-stage'); });
     </script>
 </body>
 </html>

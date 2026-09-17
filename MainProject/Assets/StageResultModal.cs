@@ -25,6 +25,9 @@ public class StageResultModal : MonoBehaviour
     /// <summary>Raised when the player presses Next on the popup.</summary>
     public event System.Action NextPressed;
 
+    /// <summary>Raised when the player presses Retry on the popup.</summary>
+    public event System.Action RetryPressed;
+
     public bool IsOpen { get; private set; }
 
     private bool star1, star2, star3;
@@ -101,8 +104,15 @@ public class StageResultModal : MonoBehaviour
 
     private void OnMessage(string message)
     {
-        if (message != "next-stage") return;
-        Hide();
-        if (NextPressed != null) NextPressed();
+        if (message == "next-stage")
+        {
+            Hide();
+            if (NextPressed != null) NextPressed();
+        }
+        else if (message == "retry-stage")
+        {
+            Hide();
+            if (RetryPressed != null) RetryPressed();
+        }
     }
 }

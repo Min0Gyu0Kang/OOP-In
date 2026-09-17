@@ -17417,6 +17417,7 @@ GameObject:
   - component: {fileID: 1939231945}
   - component: {fileID: 1939231944}
   - component: {fileID: 1939231943}
+  - component: {fileID: 1939231946}
   m_Layer: 0
   m_Name: retry
   m_TagString: Untagged
@@ -17517,6 +17518,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1939231941}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1939231946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1939231941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e5999fbd8d7a1e4cb5d3418d807b4ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StageRetryButton
 --- !u!43 &1967110704
 Mesh:
   m_ObjectHideFlags: 0
@@ -17748,21 +17761,39 @@ MonoBehaviour:
   resultModal: {fileID: 667612767}
   stages:
   - name: Stage 1
-    questionJson: "{\n  \"title\": \"Find the Seed Bag\",\n  \"description\": \"The
-      shelf holds seed bags sorted by weight.\\n\\nComplete `Shelf.find_index` so
-      it returns the index of the bag with the `target` weight, or `-1` if there
-      is none. The grader calls `find_index(bags, target)`.\",\n  \"code\": \"class
+    questionJson: "{\n  \"title\": \"Find the Seed Bag\",\n  \"description\": \"`bags`
+      holds seed bag weights sorted from light to heavy, one bag per plot: bag i
+      belongs to plot (i % 5, i // 5).\\n\\nFind the bag whose weight is `target`,
+      then Plow its plot, Plant a Carrot there and Harvest it.\",\n  \"code\": \"class
       Shelf:\\n    def __init__(self, bags):\\n        self.bags = bags\\n\\n   
-      def find_index(self, target):\\n        # return the index of target in self.bags,
-      or -1\\n        return -1\\n\\n\\ndef find_index(bags, target):\\n    return
-      Shelf(bags).find_index(target)\"\n}"
-    conditionJson: "{\n  \"entry\": \"find_index\",\n  \"sampleInput\": \"bags =
-      [2, 5, 8, 12, 16]\\ntarget = 12\",\n  \"sampleOutput\": \"3\",\n  \"tests\":
-      [\n    { \"args\": \"([2, 5, 8, 12, 16], 12)\", \"expected\": \"3\" },\n   
-      { \"args\": \"([2, 5, 8, 12, 16], 2)\", \"expected\": \"0\" },\n    { \"args\":
-      \"([1, 3], 4)\", \"expected\": \"-1\" },\n    { \"args\": \"([], 7)\", \"expected\":
-      \"-1\" }\n  ],\n  \"complexity\": {\n    \"sizes\": [1024, 16384, 262144, 1048576],\n   
-      \"genArgs\": \"lambda n: (list(range(n)), n - 1)\"\n  },\n  \"stepLimit\":
+      def find_index(self, target):\\n        # return the index of target in self.bags\\n       
+      return 0\\n\\n\\ni = Shelf(bags).find_index(target)\\nBridge.Plow(i % 5, i
+      // 5)\"\n}"
+    conditionJson: "{\n  \"sampleInput\": \"bags = [2, 5, 8, ..., 74]   # 25 bags\\ntarget
+      = 50\",\n  \"sampleOutput\": \"Carrot harvested: 1\\nplot (1, 3) plowed, every
+      other plot empty\",\n  \"helpfulCommands\": [\"Bridge.Plow(x, z)\", \"Bridge.Plant(x,
+      z, \\\"Carrot\\\")\", \"Bridge.Harvest(x, z)\"],\n  \"inputs\": \"lambda n:
+      {'bags': [2 + 3 * i for i in range(n)], 'target': 2 + 3 * (n * 2 // 3)}\",\n 
+      \"runSize\": 25,\n  \"expected\": {\n    \"harvest\": [ { \"plant\": \"Carrot\",
+      \"count\": 1 } ],\n    \"exactHarvest\": true,\n    \"plots\": \"listed\",\n   
+      \"plotList\": [ { \"x\": 1, \"z\": 3, \"state\": \"Plowed\" } ]\n  },\n  \"complexity\":
+      { \"sizes\": [64, 1024, 16384, 262144] },\n  \"stepLimit\": 200000\n}"
+  - name: Stage 2
+    questionJson: "{\n  \"title\": \"High Water\",\n  \"description\": \"`levels`
+      holds field heights sorted from low to high. Water rises to `water`: every
+      field with height <= `water` floods.\\n\\nCount the flooded fields `k`, then
+      grow a Pumpkin on plot (k % 5, k // 5) and leave it planted. Don't harvest
+      anything.\",\n  \"code\": \"class Flood:\\n    def __init__(self, levels):\\n       
+      self.levels = levels\\n\\n    def count_flooded(self, water):\\n        # number
+      of levels <= water\\n        return 0\\n\\n\\nk = Flood(levels).count_flooded(water)\"\n}"
+    conditionJson: "{\n  \"sampleInput\": \"levels = [0, 2, 4, ..., 48]   # 25 fields\\nwater
+      = 25\",\n  \"sampleOutput\": \"k = 13\\nPumpkin planted on plot (3, 2), nothing
+      harvested\",\n  \"helpfulCommands\": [\"Bridge.Plow(x, z)\", \"Bridge.Plant(x,
+      z, \\\"Pumpkin\\\")\"],\n  \"inputs\": \"lambda n: {'levels': [2 * i for i
+      in range(n)], 'water': n}\",\n  \"runSize\": 25,\n  \"expected\": {\n    \"harvest\":
+      [],\n    \"exactHarvest\": true,\n    \"plots\": \"listed\",\n    \"plotList\":
+      [ { \"x\": 3, \"z\": 2, \"state\": \"Planted\", \"plant\": \"Pumpkin\" } ]\n 
+      },\n  \"complexity\": { \"sizes\": [64, 1024, 16384, 262144] },\n  \"stepLimit\":
       200000\n}"
   startStage: 0
 --- !u!43 &1993917459

@@ -87,6 +87,7 @@ public class StageUIController : MonoBehaviour
         if (problemView != null) problemView.PageLoaded += PushQuestion;
         if (conditionView != null) conditionView.PageLoaded += PushCondition;
         if (resultModal != null) resultModal.NextPressed += OnNextPressed;
+        if (resultModal != null) resultModal.RetryPressed += RetryStage;
         OOPIn.FarmBridgeManager.PlaybackFinished += OnPlaybackFinished;
     }
 
@@ -95,6 +96,7 @@ public class StageUIController : MonoBehaviour
         if (problemView != null) problemView.PageLoaded -= PushQuestion;
         if (conditionView != null) conditionView.PageLoaded -= PushCondition;
         if (resultModal != null) resultModal.NextPressed -= OnNextPressed;
+        if (resultModal != null) resultModal.RetryPressed -= RetryStage;
         OOPIn.FarmBridgeManager.PlaybackFinished -= OnPlaybackFinished;
     }
 
@@ -185,9 +187,28 @@ public class StageUIController : MonoBehaviour
         }
 
         current++;
+        ParseCurrent();
+        ResetStageState();
+    }
+
+    /// <summary>
+    /// Restarts the current stage from its initial settings: closes the popup, clears stars
+    /// and the run log, and resets the farm (tools home, crops removed, cubes hidden, harvest
+    /// counts zero). Used by the popup's Retry and by Settings/retry (<see cref="StageRetryButton"/>).
+    /// </summary>
+    public void RetryStage()
+    {
+        ResetStageState();
+    }
+
+    private void ResetStageState()
+    {
+        if (resultModal != null) resultModal.Hide();
+        // Farm first: its reset ends any playback, which must not release a stale result.
+        var farm = OOPIn.FarmBridgeManager.Instance;
+        if (farm != null) farm.ResetForRun();
         hasPendingResult = false;
         SetStars(false, false, false, "", "", "");
-        ParseCurrent();
         PushQuestion();
         PushCondition();
         OOPIn.RunLog.Clear();
