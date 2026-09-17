@@ -62,6 +62,10 @@ public class WebViewController : MonoBehaviour
              "When ON, this also overrides WebViewWindow's Start Hidden.")]
     public bool loadOnStart = false;
 
+    [Tooltip("Load the page but keep the webview hidden until SetVisibility(true) is called " +
+             "(e.g. a popup that is preloaded at start).")]
+    public bool startHidden = false;
+
     /// <summary>
     /// Raised for every <c>window.Unity.call(msg)</c> the page makes. The string arrives
     /// already URL-unescaped, so a payload sent as
@@ -205,6 +209,60 @@ public class WebViewController : MonoBehaviour
     /// <summary>True once <see cref="Load"/> has run.</summary>
     public bool IsLoaded { get { return _loadStarted; } }
 
+    /// <summary>Raised after every page load, once the Unity.call shim is in place.</summary>
+    public event System.Action PageLoaded;
+
+    /// <summary>True once a page has finished loading at least once.</summary>
+    public bool IsPageLoaded { get; private set; }
+
+    /// <summary>True while the webview has keyboard focus (last click landed inside it).</summary>
+    public bool HasFocus { get { return webViewObject != null && webViewObject.HasFocus; } }
+
+    /// <summary>Runs JavaScript in the page. Ignored until the first page load completes.</summary>
+    public void EvaluateJS(string js)
+    {
+        if (!IsPageLoaded || webViewObject == null)
+        {
+            return;
+        }
+        webViewObject.EvaluateJS(js);
+    }
+
+    /// <summary>Quotes a string as a JavaScript string literal, safe to splice into EvaluateJS.</summary>
+    public static string ToJsString(string s)
+    {
+        if (s == null)
+        {
+            return "null";
+        }
+        var sb = new System.Text.StringBuilder(s.Length + 2);
+        sb.Append('"');
+        foreach (var c in s)
+        {
+            switch (c)
+            {
+                case '"': sb.Append("\\\""); break;
+                case '\\': sb.Append("\\\\"); break;
+                case '\n': sb.Append("\\n"); break;
+                case '\r': sb.Append("\\r"); break;
+                case '\t': sb.Append("\\t"); break;
+                default:
+                    // Also escapes U+2028/2029 and '<' so the literal can't end a script block.
+                    if (c < 0x20 || c == (char)0x2028 || c == (char)0x2029 || c == '<')
+                    {
+                        sb.Append("\\u").Append(((int)c).ToString("x4"));
+                    }
+                    else
+                    {
+                        sb.Append(c);
+                    }
+                    break;
+            }
+        }
+        sb.Append('"');
+        return sb.ToString();
+    }
+
     /// <summary>
     /// True when something other than the static margins decides the webview's rect, so the
     /// rect isn't known until that source has been evaluated at least once.
@@ -241,7 +299,7 @@ public class WebViewController : MonoBehaviour
         _loadStarted = true;
 
         _loadCoroutine = StartCoroutine(LoadWebView(Url));
-        if (!hasOwnWindow)
+        if (!hasOwnWindow && !startHidden)
         {
             // With a WebViewWindow present, it owns visibility instead.
             if (HasPositioningSource)
@@ -626,6 +684,23 @@ public class WebViewController : MonoBehaviour
         webViewObject.SetVisibility(visibility);
     }
 
+    /// <summary>
+    /// Places the webview by explicit screen margins (pixels from each edge), for components
+    /// that position it themselves, such as a centered modal. Call every frame to track
+    /// resolution changes; unchanged margins are ignored.
+    /// </summary>
+    public void SetScreenMargins(int left, int top, int right, int bottom)
+    {
+        if (webViewObject == null) return;
+        ApplyMargins(left, top, right, bottom);
+    }
+
+    /// <summary>Draw order among webviews on desktop: lower is drawn on top.</summary>
+    public void SetDrawOrder(int depth)
+    {
+        if (webViewObject != null) webViewObject.guiDepth = depth;
+    }
+
     public bool GetVisibility()
     {
         return webViewObject.GetVisibility();
@@ -756,6 +831,12 @@ public class WebViewController : MonoBehaviour
                 if (removeAds)
                 {
                     webViewObject.EvaluateJS(RemoveAdsJS);
+                }
+
+                IsPageLoaded = true;
+                if (PageLoaded != null)
+                {
+                    PageLoaded();
                 }
             },
             //transparent: false,

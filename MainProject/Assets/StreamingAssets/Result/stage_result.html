@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        html, body {
+            width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
+            background: #d9d9d9; color: #000;
+            font-family: Inter, Segoe UI, Helvetica, Arial, sans-serif;
+            user-select: none;
+        }
+        #modal { position: relative; width: 100%; height: 100%; box-sizing: border-box; }
+        #stars {
+            position: absolute; left: 0; right: 0; top: 8%;
+            display: flex; justify-content: center; gap: 4%;
+        }
+        .star { display: flex; flex-direction: column; align-items: center; width: 22%; }
+        .star svg { width: 78%; height: auto; overflow: visible; }
+        .star path { fill: #ffffff; transition: fill 0.3s; }
+        .star.active path { fill: #000000; }
+        .star .label { margin-top: 6%; font-size: 5.5vw; line-height: 1; white-space: nowrap; }
+        .star.pop svg { animation: pop 0.45s ease-out; }
+        @keyframes pop {
+            0% { transform: scale(0.6); }
+            60% { transform: scale(1.18); }
+            100% { transform: scale(1); }
+        }
+        #next {
+            position: absolute; right: 2.5%; bottom: 6%;
+            font-size: 5.5vw; line-height: 1; cursor: pointer;
+            background: none; border: 0; padding: 0; color: #000; font-family: inherit;
+        }
+        #next:hover, #retry:hover { text-decoration: underline; }
+        #retry {
+            position: absolute; left: 2.5%; bottom: 6%;
+            font-size: 5.5vw; line-height: 1; cursor: pointer;
+            background: none; border: 0; padding: 0; color: #000; font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div id="modal">
+        <div id="stars">
+            <div class="star" id="star-0">
+                <svg viewBox="0 0 24 23"><path d="M12 0l2.83 8.7H24l-7.41 5.38 2.83 8.7L12 17.4l-7.42 5.38 2.83-8.7L0 8.7h9.17z"/></svg>
+                <span class="label">cleared</span>
+            </div>
+            <div class="star" id="star-1">
+                <svg viewBox="0 0 24 23"><path d="M12 0l2.83 8.7H24l-7.41 5.38 2.83 8.7L12 17.4l-7.42 5.38 2.83-8.7L0 8.7h9.17z"/></svg>
+                <span class="label">OOP</span>
+            </div>
+            <div class="star" id="star-2">
+                <svg viewBox="0 0 24 23"><path d="M12 0l2.83 8.7H24l-7.41 5.38 2.83 8.7L12 17.4l-7.42 5.38 2.83-8.7L0 8.7h9.17z"/></svg>
+                <span class="label">O(logn)</span>
+            </div>
+        </div>
+        <button id="retry">↺Retry</button>
+        <button id="next">Next→</button>
+    </div>
+
+    <script>
+        var timers = [];
+
+        // Called from Unity (StageResultModal). Earned stars fill in one after another.
+        window.setStageResult = function (star1, star2, star3) {
+            timers.forEach(clearTimeout);
+            timers = [];
+            var delay = 0;
+            [star1, star2, star3].forEach(function (on, i) {
+                var el = document.getElementById('star-' + i);
+                el.classList.remove('active', 'pop');
+                if (!on) { return; }
+                timers.push(setTimeout(function () {
+                    void el.offsetWidth;
+                    el.classList.add('active', 'pop');
+                }, delay));
+                delay += 250;
+            });
+        };
+
+        function send(message) {
+            if (window.Unity && typeof window.Unity.call === 'function') {
+                window.Unity.call(message);
+            }
+        }
+        document.getElementById('next').addEventListener('click', function () { send('next-stage'); });
+        document.getElementById('retry').addEventListener('click', function () { send('retry-stage'); });
+    </script>
+</body>
+</html>

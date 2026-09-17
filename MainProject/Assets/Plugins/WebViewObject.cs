@@ -86,6 +86,15 @@ public class WebViewObject : MonoBehaviour
     byte[] textureDataBuffer;
     string inputString = "";
     bool hasFocus;
+    /// <summary>True after a click inside the webview's rect, until a click outside it.</summary>
+    public bool HasFocus { get { return hasFocus; } }
+
+    /// <summary>
+    /// Desktop draw order among webviews (GUI.depth): lower values are drawn on top. A modal
+    /// uses a negative value so it covers the other panels.
+    /// </summary>
+    [Tooltip("Desktop draw order: lower values are drawn on top of other webviews.")]
+    public int guiDepth = 0;
 #elif UNITY_IPHONE
     IntPtr webView;
 #elif UNITY_ANDROID
@@ -1728,6 +1737,7 @@ public class WebViewObject : MonoBehaviour
 
     void OnGUI()
     {
+        GUI.depth = guiDepth;
         if (webView == IntPtr.Zero || !visibility)
             return;
         switch (Event.current.type) {
@@ -1762,6 +1772,14 @@ public class WebViewObject : MonoBehaviour
             break;
         case EventType.Repaint:
             while (!string.IsNullOrEmpty(inputString)) {
+                var ch = inputString[0];
+                // Ctrl+letter arrives as a control character (Ctrl+C = 0x03) and Delete
+                // as 0x7F. Shortcuts and navigation keys are forwarded separately (see
+                // WebViewKeyboardBridge), so sending these too would double-fire them.
+                if ((ch < 0x20 && ch != '\b' && ch != '\t' && ch != '\n' && ch != '\r') || ch == 0x7F) {
+                    inputString = inputString.Substring(1);
+                    continue;
+                }
                 var keyChars = inputString.Substring(0, 1);
                 var keyCode = (ushort)inputString[0];
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
