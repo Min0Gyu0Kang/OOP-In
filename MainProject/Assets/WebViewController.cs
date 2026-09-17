@@ -62,6 +62,10 @@ public class WebViewController : MonoBehaviour
              "When ON, this also overrides WebViewWindow's Start Hidden.")]
     public bool loadOnStart = false;
 
+    [Tooltip("Load the page but keep the webview hidden until SetVisibility(true) is called " +
+             "(e.g. a popup that is preloaded at start).")]
+    public bool startHidden = false;
+
     /// <summary>
     /// Raised for every <c>window.Unity.call(msg)</c> the page makes. The string arrives
     /// already URL-unescaped, so a payload sent as
@@ -295,7 +299,7 @@ public class WebViewController : MonoBehaviour
         _loadStarted = true;
 
         _loadCoroutine = StartCoroutine(LoadWebView(Url));
-        if (!hasOwnWindow)
+        if (!hasOwnWindow && !startHidden)
         {
             // With a WebViewWindow present, it owns visibility instead.
             if (HasPositioningSource)
@@ -678,6 +682,23 @@ public class WebViewController : MonoBehaviour
     public void SetVisibility(bool visibility)
     {
         webViewObject.SetVisibility(visibility);
+    }
+
+    /// <summary>
+    /// Places the webview by explicit screen margins (pixels from each edge), for components
+    /// that position it themselves, such as a centered modal. Call every frame to track
+    /// resolution changes; unchanged margins are ignored.
+    /// </summary>
+    public void SetScreenMargins(int left, int top, int right, int bottom)
+    {
+        if (webViewObject == null) return;
+        ApplyMargins(left, top, right, bottom);
+    }
+
+    /// <summary>Draw order among webviews on desktop: lower is drawn on top.</summary>
+    public void SetDrawOrder(int depth)
+    {
+        if (webViewObject != null) webViewObject.guiDepth = depth;
     }
 
     public bool GetVisibility()

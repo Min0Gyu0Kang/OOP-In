@@ -4,9 +4,11 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 
 /// <summary>
-/// Drives the stage webviews: Canvas/Problem (question.html) and Canvas/Condition
-/// (condition.html). Stages are authored as JSON in the Inspector. Star results from
-/// <see cref="OOPIn.PythonASTEvaluator"/> are shown only after the farm animation finishes.
+/// Drives the stage webviews: Canvas/Problem (question.html), Canvas/Condition
+/// (condition.html, sample input/output) and the centered result popup
+/// (<see cref="StageResultModal"/>). Stages are authored as JSON in the Inspector. Star
+/// results from <see cref="OOPIn.PythonASTEvaluator"/> open the popup only after the farm
+/// animation finishes.
 /// </summary>
 public class StageUIController : MonoBehaviour
 {
@@ -17,17 +19,12 @@ public class StageUIController : MonoBehaviour
     [SerializeField] private WebViewController problemView;
     [Tooltip("Canvas/Condition - WebViewController with Url 'Condition/condition.html'.")]
     [SerializeField] private WebViewController conditionView;
+    [Tooltip("Canvas/StageResult - the centered popup (StageResultModal) showing the stars.")]
+    [SerializeField] private StageResultModal resultModal;
 
     [Header("Stages")]
     public List<StageEntry> stages = DefaultStages();
     [Min(0)] public int startStage;
-
-    private static readonly string[] StarRules =
-    {
-        "Your entry function returns the expected value for every test case.",
-        "Define a class with a method using self, store data on self, create an instance, and call a method on it.",
-        "Pass Star 1, and keep the number of executed steps growing logarithmically as the input grows (e.g. halve the search range each step)."
-    };
 
     private int current;
     private QuestionData question;
@@ -72,6 +69,8 @@ public class StageUIController : MonoBehaviour
             Debug.LogError("[StageUIController] Problem View is not assigned - drag Canvas/Problem in.", this);
         if (conditionView == null)
             Debug.LogError("[StageUIController] Condition View is not assigned - drag Canvas/Condition in.", this);
+        if (resultModal == null)
+            Debug.LogError("[StageUIController] Result Modal is not assigned - drag Canvas/StageResult in.", this);
 
         current = (stages == null || stages.Count == 0) ? 0 : Mathf.Clamp(startStage, 0, stages.Count - 1);
         ParseCurrent();
@@ -80,22 +79,16 @@ public class StageUIController : MonoBehaviour
     private void OnEnable()
     {
         if (problemView != null) problemView.PageLoaded += PushQuestion;
-        if (conditionView != null)
-        {
-            conditionView.PageLoaded += PushCondition;
-            conditionView.MessageReceived += OnConditionMessage;
-        }
+        if (conditionView != null) conditionView.PageLoaded += PushCondition;
+        if (resultModal != null) resultModal.NextPressed += OnNextPressed;
         OOPIn.FarmBridgeManager.PlaybackFinished += OnPlaybackFinished;
     }
 
     private void OnDisable()
     {
         if (problemView != null) problemView.PageLoaded -= PushQuestion;
-        if (conditionView != null)
-        {
-            conditionView.PageLoaded -= PushCondition;
-            conditionView.MessageReceived -= OnConditionMessage;
-        }
+        if (conditionView != null) conditionView.PageLoaded -= PushCondition;
+        if (resultModal != null) resultModal.NextPressed -= OnNextPressed;
         OOPIn.FarmBridgeManager.PlaybackFinished -= OnPlaybackFinished;
     }
 
@@ -115,12 +108,12 @@ public class StageUIController : MonoBehaviour
 
     // ---- Runs ---------------------------------------------------------------------------
 
-    /// <summary>Called when new code is submitted: clears stars and any result still waiting.</summary>
+    /// <summary>Called when new code is submitted: closes the popup and drops any result still waiting.</summary>
     public void OnRunStarted()
     {
         hasPendingResult = false;
         SetStars(false, false, false, "", "", "");
-        PushCondition();
+        if (resultModal != null) resultModal.Hide();
     }
 
     /// <summary>
@@ -149,7 +142,7 @@ public class StageUIController : MonoBehaviour
     private void ApplyResult(OOPIn.StageResult r)
     {
         SetStars(r.star1, r.star2, r.star3, r.detail1, r.detail2, r.detail3);
-        PushCondition();
+        if (resultModal != null) resultModal.Show(r.star1, r.star2, r.star3);
 
         string earned = (r.star1 ? "★" : "☆") + (r.star2 ? "★" : "☆") + (r.star3 ? "★" : "☆");
         OOPIn.RunLog.Add(new OOPIn.RunLogEntry { ok = r.star1, text = CurrentStageName + " result: " + earned });
@@ -164,13 +157,11 @@ public class StageUIController : MonoBehaviour
         details[0] = d1 ?? ""; details[1] = d2 ?? ""; details[2] = d3 ?? "";
     }
 
-    private void OnConditionMessage(string message)
+    // Next on the popup: advance when the stage is cleared, otherwise close so the player can retry.
+    private void OnNextPressed()
     {
-        if (message != "stage-next") return;
-
         if (!stars[0])
         {
-            Debug.Log("[StageUIController] Clear the stage (Star 1) before moving on.", this);
             return;
         }
         if (stages == null || current + 1 >= stages.Count)
@@ -185,6 +176,7 @@ public class StageUIController : MonoBehaviour
         ParseCurrent();
         PushQuestion();
         PushCondition();
+        OOPIn.RunLog.Clear();
     }
 
     // ---- Parsing ------------------------------------------------------------------------
@@ -269,48 +261,15 @@ public class StageUIController : MonoBehaviour
     {
         if (conditionView == null) return;
 
-        var js = new StringBuilder();
-        js.Append("if (window.updateConditionUI) {");
-
-        js.Append("setStarRules([");
-        for (int i = 0; i < StarRules.Length; i++)
-        {
-            if (i > 0) js.Append(',');
-            js.Append(WebViewController.ToJsString(StarRules[i]));
-        }
-        js.Append("]);");
-
-        js.Append("setTests([");
-        if (condition != null && conditionError == null && condition.tests != null)
-        {
-            for (int i = 0; i < condition.tests.Count; i++)
-            {
-                var t = condition.tests[i];
-                if (i > 0) js.Append(',');
-                js.Append("{args:").Append(WebViewController.ToJsString(t.args ?? ""))
-                  .Append(",expected:").Append(WebViewController.ToJsString(t.expected ?? ""))
-                  .Append(",ctor:").Append(WebViewController.ToJsString(t.ctor ?? "")).Append('}');
-            }
-        }
-        js.Append("]);");
-
         bool valid = condition != null && conditionError == null;
-        js.Append("setInvalid(").Append(WebViewController.ToJsString(valid ? "" : "conditionJson: " + conditionError)).Append(");");
-        js.Append("updateConditionUI(")
-          .Append(WebViewController.ToJsString(valid ? condition.sampleInput ?? "" : "")).Append(',')
-          .Append(WebViewController.ToJsString(valid ? condition.sampleOutput ?? "" : "")).Append(',')
-          .Append(Bool(stars[0])).Append(',').Append(Bool(stars[1])).Append(',').Append(Bool(stars[2])).Append(");");
-        js.Append("setStarDetails([")
-          .Append(WebViewController.ToJsString(details[0])).Append(',')
-          .Append(WebViewController.ToJsString(details[1])).Append(',')
-          .Append(WebViewController.ToJsString(details[2])).Append("]);");
-        js.Append("setHasNext(").Append(Bool(stages != null && current + 1 < stages.Count)).Append(");");
-
-        js.Append('}');
-        conditionView.EvaluateJS(js.ToString());
+        conditionView.EvaluateJS(
+            "if (window.setSamples) {" +
+            "setInvalid(" + WebViewController.ToJsString(valid ? "" : "conditionJson: " + conditionError) + ");" +
+            "setSamples(" + WebViewController.ToJsString(valid ? condition.sampleInput ?? "" : "") + "," +
+                            WebViewController.ToJsString(valid ? condition.sampleOutput ?? "" : "") + ");" +
+            "}");
     }
 
-    private static string Bool(bool b) { return b ? "true" : "false"; }
 
     /// <summary>
     /// Plain-text description -> paragraphs (split on blank lines) with `backtick` spans as

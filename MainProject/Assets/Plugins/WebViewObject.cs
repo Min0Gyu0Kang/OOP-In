@@ -88,6 +88,13 @@ public class WebViewObject : MonoBehaviour
     bool hasFocus;
     /// <summary>True after a click inside the webview's rect, until a click outside it.</summary>
     public bool HasFocus { get { return hasFocus; } }
+
+    /// <summary>
+    /// Desktop draw order among webviews (GUI.depth): lower values are drawn on top. A modal
+    /// uses a negative value so it covers the other panels.
+    /// </summary>
+    [Tooltip("Desktop draw order: lower values are drawn on top of other webviews.")]
+    public int guiDepth = 0;
 #elif UNITY_IPHONE
     IntPtr webView;
 #elif UNITY_ANDROID
@@ -1730,6 +1737,7 @@ public class WebViewObject : MonoBehaviour
 
     void OnGUI()
     {
+        GUI.depth = guiDepth;
         if (webView == IntPtr.Zero || !visibility)
             return;
         switch (Event.current.type) {

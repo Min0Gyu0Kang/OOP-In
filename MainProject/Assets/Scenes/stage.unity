@@ -406,6 +406,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::WebViewObject
   canvas: {fileID: 689815617}
+  guiDepth: 0
   bitmapRefreshCycle: 3
   devicePixelRatio: 1
 --- !u!114 &27062088
@@ -431,6 +432,7 @@ MonoBehaviour:
   anchorCamera: {fileID: 0}
   removeAds: 0
   loadOnStart: 1
+  startHidden: 0
 --- !u!114 &27062089
 MonoBehaviour:
   m_ObjectHideFlags: 2
@@ -1622,6 +1624,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::WebViewObject
   canvas: {fileID: 1313021902885067293}
+  guiDepth: 0
   bitmapRefreshCycle: 3
   devicePixelRatio: 1
 --- !u!114 &265273993
@@ -1636,7 +1639,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b11b8eb4e5241a499a69a34208961aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WebViewController
-  Url: 
+  Url: Condition/condition.html
   LeftMargin: 0
   RightMargin: 0
   TopMargin: 0
@@ -1647,6 +1650,7 @@ MonoBehaviour:
   anchorCamera: {fileID: 0}
   removeAds: 0
   loadOnStart: 1
+  startHidden: 0
 --- !u!114 &265273994
 MonoBehaviour:
   m_ObjectHideFlags: 2
@@ -6051,6 +6055,192 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &667612759
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 667612760}
+  - component: {fileID: 667612766}
+  - component: {fileID: 667612765}
+  - component: {fileID: 667612764}
+  - component: {fileID: 667612763}
+  - component: {fileID: 667612762}
+  - component: {fileID: 667612761}
+  - component: {fileID: 667612767}
+  m_Layer: 0
+  m_Name: clear_summary
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &667612760
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667612759}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: -0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 3570}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 669471669}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 2564, y: 220}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &667612761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667612759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eba941abfafe01c4db613b6eb9b38290, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WebViewKeyboardBridge
+  webViewController: {fileID: 667612765}
+--- !u!114 &667612762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667612759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &667612763
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667612759}
+  m_CullTransparentMesh: 1
+--- !u!114 &667612764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667612759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4d2b188f50df4b299eb714ef4360ee9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp-firstpass::WebViewObject
+  canvas: {fileID: 0}
+  guiDepth: 0
+  bitmapRefreshCycle: 3
+  devicePixelRatio: 1
+--- !u!114 &667612765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667612759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b11b8eb4e5241a499a69a34208961aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WebViewController
+  Url: Result/stage_result.html
+  LeftMargin: 0
+  RightMargin: 0
+  TopMargin: 0
+  BottomMargin: 0
+  webViewObject: {fileID: 667612764}
+  boundsPanel: {fileID: 0}
+  worldAnchor: {fileID: 0}
+  anchorCamera: {fileID: 0}
+  removeAds: 0
+  loadOnStart: 1
+  startHidden: 1
+--- !u!114 &667612766
+MonoBehaviour:
+  m_ObjectHideFlags: 2
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667612759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 994c66b6148109b489689ed705d244cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Flexalon::Flexalon.FlexalonResult
+  Parent: {fileID: 0}
+  SiblingIndex: 0
+  LayoutPosition: {x: 0, y: 0, z: 0}
+  LayoutRotation: {x: 0, y: 0, z: 0, w: 1}
+  AdapterBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  LayoutBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  RotatedAndScaledBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  ComponentScale: {x: 1, y: 1, z: 1}
+  FillSize: {x: 1, y: 1, z: 1}
+  ShrinkSize: {x: 999999, y: 999999, z: 999999}
+  TargetPosition: {x: -2.313195, y: 2.9791458, z: 3.4326181}
+  TargetRotation: {x: 0, y: 0, z: 0, w: 1}
+  TargetScale: {x: 1, y: 1, z: 1}
+  TargetRectSize: {x: 0, y: 0, z: 0}
+  TransformPosition: {x: -0, y: 0, z: 3.4326181}
+  TransformRotation: {x: -0, y: -0, z: -0, w: 1}
+  TransformScale: {x: 1, y: 1, z: 1}
+  TransformRectSize: {x: 0, y: 0}
+--- !u!114 &667612767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667612759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1547659ea913e474c9d1c354bd1cb2a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StageResultModal
+  webViewController: {fileID: 1226487260}
+  widthFraction: 0.42
+  aspect: 1.7924528
+  maxHeightFraction: 0.8
+  drawOrder: -100
 --- !u!1 &669471665
 GameObject:
   m_ObjectHideFlags: 0
@@ -6150,6 +6340,7 @@ RectTransform:
   - {fileID: 27062083}
   - {fileID: 1226487255}
   - {fileID: 771961334}
+  - {fileID: 667612760}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0.237, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -7123,6 +7314,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::WebViewObject
   canvas: {fileID: 1442095174}
+  guiDepth: 0
   bitmapRefreshCycle: 3
   devicePixelRatio: 1
 --- !u!114 &771961336
@@ -7148,6 +7340,7 @@ MonoBehaviour:
   anchorCamera: {fileID: 0}
   removeAds: 1
   loadOnStart: 0
+  startHidden: 0
 --- !u!114 &771961337
 MonoBehaviour:
   m_ObjectHideFlags: 2
@@ -7920,8 +8113,6 @@ GameObject:
   - component: {fileID: 866773302}
   - component: {fileID: 866773301}
   - component: {fileID: 866773300}
-  - component: {fileID: 866773299}
-  - component: {fileID: 866773298}
   - component: {fileID: 866773297}
   m_Layer: 0
   m_Name: Problem
@@ -7962,43 +8153,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WebViewKeyboardBridge
   webViewController: {fileID: 866773303}
---- !u!114 &866773298
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 866773295}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d1ccddcfce243646b6c4397b422116b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InteractivePythonManager
-  bootstrapScript: 'import clr
-
-    clr.AddReference(''Assembly-CSharp'')
-
-    import
-    UnityEngine
-
-    from OOPIn import Bridge
-
-'
---- !u!114 &866773299
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 866773295}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 354b84f637a377b4ea5e26d7e05eaab4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MonacoBridge
-  webViewController: {fileID: 866773303}
-  pythonManager: {fileID: 0}
-  logMessages: 1
 --- !u!114 &866773300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8050,6 +8204,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::WebViewObject
   canvas: {fileID: 1313021902885067295}
+  guiDepth: 0
   bitmapRefreshCycle: 3
   devicePixelRatio: 1
 --- !u!114 &866773303
@@ -8064,7 +8219,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b11b8eb4e5241a499a69a34208961aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WebViewController
-  Url: 
+  Url: Question/question.html
   LeftMargin: 0
   RightMargin: 0
   TopMargin: 0
@@ -8075,6 +8230,7 @@ MonoBehaviour:
   anchorCamera: {fileID: 0}
   removeAds: 0
   loadOnStart: 1
+  startHidden: 0
 --- !u!114 &866773304
 MonoBehaviour:
   m_ObjectHideFlags: 2
@@ -10833,6 +10989,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::WebViewObject
   canvas: {fileID: 1313021902885067292}
+  guiDepth: 0
   bitmapRefreshCycle: 3
   devicePixelRatio: 1
 --- !u!114 &1226487260
@@ -10858,6 +11015,7 @@ MonoBehaviour:
   anchorCamera: {fileID: 0}
   removeAds: 0
   loadOnStart: 1
+  startHidden: 0
 --- !u!114 &1226487261
 MonoBehaviour:
   m_ObjectHideFlags: 2
@@ -17537,6 +17695,76 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &1982709409
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1982709410}
+  - component: {fileID: 1982709411}
+  m_Layer: 0
+  m_Name: Stages
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1982709410
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1982709409}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.44646114, y: 0.44646114, z: 0.44646114}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 1079.3773, y: 213.45644}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1982709411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1982709409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8a55ae7706271d4f9c0cd081a4082b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StageUIController
+  problemView: {fileID: 866773303}
+  conditionView: {fileID: 265273993}
+  resultModal: {fileID: 667612767}
+  stages:
+  - name: Stage 1
+    questionJson: "{\n  \"title\": \"Find the Seed Bag\",\n  \"description\": \"The
+      shelf holds seed bags sorted by weight.\\n\\nComplete `Shelf.find_index` so
+      it returns the index of the bag with the `target` weight, or `-1` if there
+      is none. The grader calls `find_index(bags, target)`.\",\n  \"code\": \"class
+      Shelf:\\n    def __init__(self, bags):\\n        self.bags = bags\\n\\n   
+      def find_index(self, target):\\n        # return the index of target in self.bags,
+      or -1\\n        return -1\\n\\n\\ndef find_index(bags, target):\\n    return
+      Shelf(bags).find_index(target)\"\n}"
+    conditionJson: "{\n  \"entry\": \"find_index\",\n  \"sampleInput\": \"bags =
+      [2, 5, 8, 12, 16]\\ntarget = 12\",\n  \"sampleOutput\": \"3\",\n  \"tests\":
+      [\n    { \"args\": \"([2, 5, 8, 12, 16], 12)\", \"expected\": \"3\" },\n   
+      { \"args\": \"([2, 5, 8, 12, 16], 2)\", \"expected\": \"0\" },\n    { \"args\":
+      \"([1, 3], 4)\", \"expected\": \"-1\" },\n    { \"args\": \"([], 7)\", \"expected\":
+      \"-1\" }\n  ],\n  \"complexity\": {\n    \"sizes\": [1024, 16384, 262144, 1048576],\n   
+      \"genArgs\": \"lambda n: (list(range(n)), n - 1)\"\n  },\n  \"stepLimit\":
+      200000\n}"
+  startStage: 0
 --- !u!43 &1993917459
 Mesh:
   m_ObjectHideFlags: 0
@@ -19210,85 +19438,16 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1557018369178457388, guid: fc89855dbfeb0a7408e02d81cb0d5f75, type: 3}
   m_PrefabInstance: {fileID: 6941380035390425632}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &9191833277383227377
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 811908786213785002, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_Name
-      value: StageResults
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 26.129929
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 26.129929
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 26.129929
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 579.905
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -1262.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 2024.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7056388
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.7085718
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 90.238
-      objectReference: {fileID: 0}
-    - target: {fileID: 5249004373323654783, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: b27ddfc31684ac54f94caf2c101793c0, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1260854203}
   - {fileID: 835839680}
+  - {fileID: 1982709410}
   - {fileID: 669471669}
   - {fileID: 1231438789}
   - {fileID: 1313021902885067291}
   - {fileID: 1226241356}
   - {fileID: 6941380035390425632}
-  - {fileID: 9191833277383227377}
   - {fileID: 1081675726}
