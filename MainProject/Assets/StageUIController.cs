@@ -45,6 +45,12 @@ public class StageUIController : MonoBehaviour
         get { return condition != null && conditionError == null ? stages[current].conditionJson : null; }
     }
 
+    /// <summary>The parsed conditionJson, or null when there is no valid stage to grade.</summary>
+    public ConditionData CurrentCondition
+    {
+        get { return conditionError == null ? condition : null; }
+    }
+
     public string CurrentStageName
     {
         get { return stages != null && current < stages.Count ? stages[current].name : ""; }
@@ -142,6 +148,14 @@ public class StageUIController : MonoBehaviour
     private void ApplyResult(OOPIn.StageResult r)
     {
         SetStars(r.star1, r.star2, r.star3, r.detail1, r.detail2, r.detail3);
+
+        // Not cleared: no popup, the stage keeps running and the log says why.
+        if (!r.star1)
+        {
+            OOPIn.RunLog.Add(new OOPIn.RunLogEntry { ok = false, text = CurrentStageName + " not cleared: " + r.detail1 });
+            return;
+        }
+
         if (resultModal != null) resultModal.Show(r.star1, r.star2, r.star3);
 
         string earned = (r.star1 ? "★" : "☆") + (r.star2 ? "★" : "☆") + (r.star3 ? "★" : "☆");
@@ -200,7 +214,10 @@ public class StageUIController : MonoBehaviour
         if (question != null && string.IsNullOrEmpty(question.title)) questionError = "\"title\" is required";
 
         condition = Parse<ConditionData>(stage.conditionJson, out conditionError);
-        if (condition != null && string.IsNullOrEmpty(condition.entry)) conditionError = "\"entry\" is required";
+        if (condition != null && (condition.expected == null ||
+                                  (condition.expected.harvest.Count == 0 &&
+                                   (string.IsNullOrEmpty(condition.expected.plots) || condition.expected.plots == "any"))))
+            conditionError = "\"expected\" needs a harvest goal or a plots goal";
 
         if (questionError != null) LogOnce("[Stage \"" + stage.name + "\"] questionJson: " + questionError);
         if (conditionError != null) LogOnce("[Stage \"" + stage.name + "\"] conditionJson: " + conditionError);
@@ -262,11 +279,23 @@ public class StageUIController : MonoBehaviour
         if (conditionView == null) return;
 
         bool valid = condition != null && conditionError == null;
+        var commands = new StringBuilder("[");
+        if (valid && condition.helpfulCommands != null)
+        {
+            for (int i = 0; i < condition.helpfulCommands.Count; i++)
+            {
+                if (i > 0) commands.Append(',');
+                commands.Append(WebViewController.ToJsString(condition.helpfulCommands[i] ?? ""));
+            }
+        }
+        commands.Append(']');
+
         conditionView.EvaluateJS(
             "if (window.setSamples) {" +
             "setInvalid(" + WebViewController.ToJsString(valid ? "" : "conditionJson: " + conditionError) + ");" +
             "setSamples(" + WebViewController.ToJsString(valid ? condition.sampleInput ?? "" : "") + "," +
-                            WebViewController.ToJsString(valid ? condition.sampleOutput ?? "" : "") + ");" +
+                            WebViewController.ToJsString(valid ? condition.sampleOutput ?? "" : "") + "," +
+                            commands + ");" +
             "}");
     }
 
@@ -307,24 +336,49 @@ public class StageUIController : MonoBehaviour
                 questionJson =
 @"{
   ""title"": ""Find the Seed Bag"",
-  ""description"": ""The shelf holds seed bags sorted by weight.\n\nComplete `Shelf.find_index` so it returns the index of the bag with the `target` weight, or `-1` if there is none. The grader calls `find_index(bags, target)`."",
-  ""code"": ""class Shelf:\n    def __init__(self, bags):\n        self.bags = bags\n\n    def find_index(self, target):\n        # return the index of target in self.bags, or -1\n        return -1\n\n\ndef find_index(bags, target):\n    return Shelf(bags).find_index(target)""
+  ""description"": ""`bags` holds seed bag weights sorted from light to heavy, one bag per plot: bag i belongs to plot (i % 5, i // 5).\n\nFind the bag whose weight is `target`, then Plow its plot, Plant a Carrot there and Harvest it."",
+  ""code"": ""class Shelf:\n    def __init__(self, bags):\n        self.bags = bags\n\n    def find_index(self, target):\n        # return the index of target in self.bags\n        return 0\n\n\ni = Shelf(bags).find_index(target)\nBridge.Plow(i % 5, i // 5)""
 }",
                 conditionJson =
 @"{
-  ""entry"": ""find_index"",
-  ""sampleInput"": ""bags = [2, 5, 8, 12, 16]\ntarget = 12"",
-  ""sampleOutput"": ""3"",
-  ""tests"": [
-    { ""args"": ""([2, 5, 8, 12, 16], 12)"", ""expected"": ""3"" },
-    { ""args"": ""([2, 5, 8, 12, 16], 2)"", ""expected"": ""0"" },
-    { ""args"": ""([1, 3], 4)"", ""expected"": ""-1"" },
-    { ""args"": ""([], 7)"", ""expected"": ""-1"" }
-  ],
-  ""complexity"": {
-    ""sizes"": [1024, 16384, 262144, 1048576],
-    ""genArgs"": ""lambda n: (list(range(n)), n - 1)""
+  ""sampleInput"": ""bags = [2, 5, 8, ..., 74]   # 25 bags\ntarget = 50"",
+  ""sampleOutput"": ""Carrot harvested: 1\nplot (1, 3) plowed, every other plot empty"",
+  ""helpfulCommands"": [""Bridge.Plow(x, z)"", ""Bridge.Plant(x, z, \""Carrot\"")"", ""Bridge.Harvest(x, z)""],
+  ""inputs"": ""lambda n: {'bags': [2 + 3 * i for i in range(n)], 'target': 2 + 3 * (n * 2 // 3)}"",
+  ""runSize"": 25,
+  ""expected"": {
+    ""harvest"": [ { ""plant"": ""Carrot"", ""count"": 1 } ],
+    ""exactHarvest"": true,
+    ""plots"": ""listed"",
+    ""plotList"": [ { ""x"": 1, ""z"": 3, ""state"": ""Plowed"" } ]
   },
+  ""complexity"": { ""sizes"": [64, 1024, 16384, 262144] },
+  ""stepLimit"": 200000
+}"
+            },
+            new StageEntry
+            {
+                name = "Stage 2",
+                questionJson =
+@"{
+  ""title"": ""High Water"",
+  ""description"": ""`levels` holds field heights sorted from low to high. Water rises to `water`: every field with height <= `water` floods.\n\nCount the flooded fields `k`, then grow a Pumpkin on plot (k % 5, k // 5) and leave it planted. Don't harvest anything."",
+  ""code"": ""class Flood:\n    def __init__(self, levels):\n        self.levels = levels\n\n    def count_flooded(self, water):\n        # number of levels <= water\n        return 0\n\n\nk = Flood(levels).count_flooded(water)""
+}",
+                conditionJson =
+@"{
+  ""sampleInput"": ""levels = [0, 2, 4, ..., 48]   # 25 fields\nwater = 25"",
+  ""sampleOutput"": ""k = 13\nPumpkin planted on plot (3, 2), nothing harvested"",
+  ""helpfulCommands"": [""Bridge.Plow(x, z)"", ""Bridge.Plant(x, z, \""Pumpkin\"")""],
+  ""inputs"": ""lambda n: {'levels': [2 * i for i in range(n)], 'water': n}"",
+  ""runSize"": 25,
+  ""expected"": {
+    ""harvest"": [],
+    ""exactHarvest"": true,
+    ""plots"": ""listed"",
+    ""plotList"": [ { ""x"": 3, ""z"": 2, ""state"": ""Planted"", ""plant"": ""Pumpkin"" } ]
+  },
+  ""complexity"": { ""sizes"": [64, 1024, 16384, 262144] },
   ""stepLimit"": 200000
 }"
             }

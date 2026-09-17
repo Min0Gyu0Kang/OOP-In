@@ -11,9 +11,10 @@ public class StageEntry
     [Tooltip("Shown in Canvas/Problem. { \"title\", \"description\", \"code\" }")]
     [TextArea(8, 30)] public string questionJson;
 
-    [Tooltip("Shown in Canvas/Condition and used to grade runs. { \"entry\", \"sampleInput\", " +
-             "\"sampleOutput\", \"tests\": [{\"args\",\"expected\",\"ctor\"}], " +
-             "\"complexity\": {\"sizes\", \"genArgs\"}, \"stepLimit\" }")]
+    [Tooltip("Shown in Canvas/Condition and used to grade runs. { \"sampleInput\", \"sampleOutput\", " +
+             "\"helpfulCommands\": [..], \"inputs\", \"runSize\", \"expected\": {\"harvest\": [{\"plant\",\"count\"}], " +
+             "\"exactHarvest\", \"plots\": \"any|empty|listed\", \"plotList\": [{\"x\",\"z\",\"state\",\"plant\"}]}, " +
+             "\"complexity\": {\"sizes\"}, \"stepLimit\" }")]
     [TextArea(8, 30)] public string conditionJson;
 }
 
@@ -27,42 +28,66 @@ public class QuestionData
 }
 
 /// <summary>
-/// conditionJson. Test values are Python literals kept as strings so JsonUtility can parse
-/// them; the evaluator reads them with ast.literal_eval.
+/// conditionJson. A stage is cleared when the farm ends in the <see cref="expected"/> state.
 /// </summary>
 [Serializable]
 public class ConditionData
 {
-    /// <summary>"function" or "Class.method".</summary>
-    public string entry;
     public string sampleInput;
     public string sampleOutput;
-    public List<StageTest> tests = new List<StageTest>();
+    /// <summary>Shown as code rows on the Condition page, e.g. "Bridge.Harvest(x, z)".</summary>
+    public List<string> helpfulCommands = new List<string>();
+
+    /// <summary>
+    /// Python lambda n -> dict of variables the player's code can read, e.g.
+    /// "lambda n: {'bags': list(range(n)), 'target': n - 1}". Optional.
+    /// </summary>
+    public string inputs;
+    /// <summary>n used for the real run on the farm (the sample input).</summary>
+    public int runSize = 25;
+
+    public FarmGoal expected = new FarmGoal();
     public StageComplexity complexity = new StageComplexity();
+    /// <summary>Line steps allowed per run before it counts as an endless loop.</summary>
     public int stepLimit = 200000;
 }
 
+/// <summary>What the farm must look like after the run.</summary>
 [Serializable]
-public class StageTest
+public class FarmGoal
 {
-    /// <summary>Python literal of the call arguments, e.g. "([1, 2, 3], 2)".</summary>
-    public string args;
-    /// <summary>Python literal of the expected return value.</summary>
-    public string expected;
-    /// <summary>Constructor arguments when entry is "Class.method". Optional.</summary>
-    public string ctor;
+    public List<HarvestGoal> harvest = new List<HarvestGoal>();
+    /// <summary>When true, harvesting more than the goal (or other plants) fails.</summary>
+    public bool exactHarvest;
+    /// <summary>"any" (default): plots don't matter. "empty": every plot empty.
+    /// "listed": plots in <see cref="plotList"/> must match, every other plot empty.</summary>
+    public string plots = "any";
+    public List<PlotGoal> plotList = new List<PlotGoal>();
+}
+
+[Serializable]
+public class HarvestGoal
+{
+    public string plant;
+    public int count;
+}
+
+[Serializable]
+public class PlotGoal
+{
+    public int x;
+    public int z;
+    /// <summary>"Empty", "Plowed" or "Planted".</summary>
+    public string state = "Planted";
+    /// <summary>Required plant when state is "Planted". Optional.</summary>
+    public string plant;
 }
 
 [Serializable]
 public class StageComplexity
 {
-    /// <summary>Input sizes to measure, smallest to largest.</summary>
+    /// <summary>Input sizes n passed to <see cref="ConditionData.inputs"/> when measuring Star 3.</summary>
     public int[] sizes;
-    /// <summary>
-    /// Python lambda n -> call args (a tuple), or -> (ctor args, call args) when entry is
-    /// "Class.method".
-    /// </summary>
-    public string genArgs;
 }
 
 namespace OOPIn

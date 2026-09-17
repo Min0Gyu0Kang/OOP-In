@@ -6236,7 +6236,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1547659ea913e474c9d1c354bd1cb2a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageResultModal
-  webViewController: {fileID: 1226487260}
+  webViewController: {fileID: 667612765}
   widthFraction: 0.42
   aspect: 1.7924528
   maxHeightFraction: 0.8

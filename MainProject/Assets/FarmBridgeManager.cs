@@ -84,7 +84,7 @@ namespace OOPIn
         [Tooltip("Pause after each command before the next one starts.")]
         public float dwellSeconds = 0.2f;
 
-        private enum PlotState { Empty, Plowed, Planted }
+        public enum PlotState { Empty, Plowed, Planted }
 
         private struct Command
         {
@@ -106,6 +106,9 @@ namespace OOPIn
 
         private readonly Dictionary<string, Transform> plantTemplates = new Dictionary<string, Transform>();
         private readonly Dictionary<string, int> harvestCounts = new Dictionary<string, int>();
+        // Harvest counts once the queue drains; harvestCounts only fills while playback runs.
+        private readonly Dictionary<string, int> projectedHarvest = new Dictionary<string, int>();
+        private int runCommandCount;
 
         // A run is checked in full before anything plays: Bridge calls only validate and
         // collect, and CommitRun() plays the list once the script has finished without error.
@@ -136,6 +139,39 @@ namespace OOPIn
 
         /// <summary>Plant names accepted by Bridge.Plant, sorted.</summary>
         public IEnumerable<string> PlantNames { get { return plantTemplates.Keys.OrderBy(k => k); } }
+
+        // ---- Projected end state of the last run (valid right after the script finished) ----
+
+        public int Columns { get { return columns; } }
+        public int RowCount { get { return Rows; } }
+
+        /// <summary>Commands the last run issued (0 when it stopped on an error).</summary>
+        public int RunCommandCount { get { return runCommandCount; } }
+
+        /// <summary>How many of <paramref name="plantName"/> the last run harvests.</summary>
+        public int ProjectedHarvest(string plantName)
+        {
+            string key = ResolvePlant(plantName) ?? plantName ?? "";
+            int count;
+            return projectedHarvest.TryGetValue(key, out count) ? count : 0;
+        }
+
+        public IEnumerable<KeyValuePair<string, int>> ProjectedHarvests { get { return projectedHarvest; } }
+
+        /// <summary>State and plant of a plot once the last run's commands have all applied.</summary>
+        public bool TryGetProjectedPlot(int gridX, int gridZ, out PlotState state, out string plant)
+        {
+            state = PlotState.Empty;
+            plant = null;
+            if (projectedPlots == null || gridX < 0 || gridX >= columns || gridZ < 0 || gridZ >= Rows) return false;
+            int index = gridZ * columns + gridX;
+            state = projectedPlots[index];
+            plant = projectedPlant[index];
+            return true;
+        }
+
+        /// <summary>Canonical plant name ("carrot" -> "Carrot"), or null when unknown.</summary>
+        public string PlantKey(string plantName) { return ResolvePlant(plantName); }
 
         private int Rows { get { return gridRoot == null || columns <= 0 ? 0 : gridRoot.childCount / columns; } }
 
@@ -260,6 +296,9 @@ namespace OOPIn
                 case FarmAction.Harvest:
                     if (state == PlotState.Empty) return Fail(line, plot + " failed to harvest: plot is not plowed.");
                     if (state == PlotState.Plowed) return Fail(line, plot + " failed to harvest: nothing planted.");
+                    int harvested;
+                    projectedHarvest.TryGetValue(planted, out harvested);
+                    projectedHarvest[planted] = harvested + 1;
                     projectedPlots[index] = PlotState.Plowed;
                     projectedPlant[index] = null;
                     break;
@@ -286,6 +325,7 @@ namespace OOPIn
         /// </summary>
         public void CommitRun()
         {
+            runCommandCount = runFailed ? 0 : pending.Count;
             if (runFailed)
             {
                 foreach (var cmd in pending)
@@ -346,6 +386,8 @@ namespace OOPIn
             }
 
             harvestCounts.Clear();
+            projectedHarvest.Clear();
+            runCommandCount = 0;
             if (plots == null) return;
 
             for (int i = 0; i < plots.Length; i++)

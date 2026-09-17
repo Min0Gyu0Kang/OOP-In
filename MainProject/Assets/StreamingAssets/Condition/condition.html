@@ -17,6 +17,11 @@
             border-radius: 4px; overflow-x: auto; min-height: 16px;
         }
         code { font-family: Consolas, 'Courier New', monospace; font-size: 13px; color: #d4d4d4; white-space: pre; }
+        #commands { list-style: none; margin: 0; padding: 0; }
+        #commands li { margin: 0 0 4px; }
+        #commands code { display: inline-block; padding: 2px 6px; background: #252526;
+                         border: 1px solid #333; border-radius: 3px; color: #dcdcaa; }
+        #commands-block { display: none; }
         #invalid { display: none; margin: 4px 0 8px; color: #f48771; }
     </style>
 </head>
@@ -33,13 +38,28 @@
                 <pre><code id="sample-output"></code></pre>
             </div>
         </div>
+        <div id="commands-block">
+            <h3>Helpful Commands</h3>
+            <ul id="commands"></ul>
+        </div>
     </div>
 
     <script>
         // Called from StageUIController.
-        window.setSamples = function (sampleInput, sampleOutput) {
+        window.setSamples = function (sampleInput, sampleOutput, commands) {
             document.getElementById('sample-input').textContent = sampleInput || '';
             document.getElementById('sample-output').textContent = sampleOutput || '';
+
+            var list = document.getElementById('commands');
+            list.innerHTML = '';
+            (commands || []).forEach(function (text) {
+                var li = document.createElement('li');
+                var code = document.createElement('code');
+                code.textContent = text;
+                li.appendChild(code);
+                list.appendChild(li);
+            });
+            document.getElementById('commands-block').style.display = list.children.length ? 'block' : 'none';
         };
 
         window.setInvalid = function (message) {
