@@ -89,20 +89,43 @@ public class InteractivePythonManager : MonoBehaviour
         {
             return;
         }
-        if (OOPIn.FarmBridgeManager.Instance != null)
+        var stageUI = StageUIController.Instance;
+        // Before the farm reset: that reset ends any playback, which must not release a
+        // result left over from the previous run.
+        if (stageUI != null)
         {
-            OOPIn.FarmBridgeManager.Instance.ResetForRun();
+            stageUI.OnRunStarted();
+        }
+        var farm = OOPIn.FarmBridgeManager.Instance;
+        if (farm != null)
+        {
+            farm.ResetForRun();
         }
         OOPIn.RunLog.Clear();
+        OOPIn.Bridge.RunHadError = false;
 
         var encoded = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(code));
         Run(string.Format(RunnerTemplate, encoded), "submitted code");
 
         // RunString is synchronous, so the whole script has been checked by now: play it,
         // or report the first error and play nothing.
-        if (OOPIn.FarmBridgeManager.Instance != null)
+        if (farm != null)
         {
-            OOPIn.FarmBridgeManager.Instance.CommitRun();
+            farm.CommitRun();
+        }
+
+        // Grade the stage. The result is shown by StageUIController once the farm animation
+        // above has finished.
+        if (stageUI != null && stageUI.CurrentConditionJson != null)
+        {
+            if (OOPIn.Bridge.RunHadError || (farm != null && farm.RunFailed))
+            {
+                OOPIn.PythonASTEvaluator.ReportNotRun("run stopped on an error - fix it to earn stars");
+            }
+            else
+            {
+                Run(OOPIn.PythonASTEvaluator.BuildScript(stageUI.CurrentConditionJson, code), "stage evaluation");
+            }
         }
     }
 

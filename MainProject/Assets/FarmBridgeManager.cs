@@ -16,9 +16,13 @@ namespace OOPIn
         public static bool Plant(int gridX, int gridZ, string plantName, int line) { return Run(m => m.Enqueue(FarmAction.Plant, gridX, gridZ, plantName, line)); }
         public static bool Harvest(int gridX, int gridZ, int line) { return Run(m => m.Enqueue(FarmAction.Harvest, gridX, gridZ, null, line)); }
 
+        /// <summary>True once the current run has raised a Python error. Cleared per run.</summary>
+        public static bool RunHadError { get; set; }
+
         /// <summary>Called by the session runner when submitted code raises.</summary>
         public static void ReportError(int line, string errorType, string message)
         {
+            RunHadError = true;
             var entry = new RunLogEntry()
             {
                 line = line,
@@ -109,6 +113,17 @@ namespace OOPIn
         private bool runFailed;
         private RunLogEntry runError;
         private Coroutine runner;
+        // Set before StartCoroutine: a run with nothing to wait on can finish inside that call.
+        private bool playing;
+
+        /// <summary>True while tool/plant animations of the current run are still playing.</summary>
+        public bool IsPlaying { get { return playing; } }
+
+        /// <summary>True when the last run stopped on an error (Python or rejected command).</summary>
+        public bool RunFailed { get { return runFailed; } }
+
+        /// <summary>Raised when a run's animations finish, are skipped, or are interrupted.</summary>
+        public static event System.Action PlaybackFinished;
 
         private Transform[] tools;
         private Vector3[] toolHomePositions;
@@ -286,13 +301,26 @@ namespace OOPIn
                            ": no commands were executed."
                 });
                 pending.Clear();
+                RaisePlaybackFinished();
                 return;
             }
 
-            if (pending.Count == 0) return;
+            if (pending.Count == 0)
+            {
+                RaisePlaybackFinished();
+                return;
+            }
             var commands = new List<Command>(pending);
             pending.Clear();
-            runner = StartCoroutine(PlayRun(commands));
+            playing = true;
+            var started = StartCoroutine(PlayRun(commands));
+            if (playing) runner = started;
+        }
+
+        private void RaisePlaybackFinished()
+        {
+            playing = false;
+            if (PlaybackFinished != null) PlaybackFinished();
         }
 
         /// <summary>
@@ -308,6 +336,7 @@ namespace OOPIn
                 StopCoroutine(runner);
                 runner = null;
             }
+            if (playing) RaisePlaybackFinished();
 
             for (int i = 0; i < tools.Length; i++)
             {
@@ -388,6 +417,7 @@ namespace OOPIn
                 if (dwellSeconds > 0f) yield return dwell;
             }
             runner = null;
+            RaisePlaybackFinished();
         }
 
         private string Apply(Command cmd, Transform cube)
