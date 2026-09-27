@@ -38,6 +38,9 @@ public class StageResultModal : MonoBehaviour
         {
             webViewController = GetComponent<WebViewController>();
         }
+        // The popup owns its layer (drawOrder) and must stay in front, so it takes no part in
+        // the click-to-front rotation between the other pages.
+        webViewController.raiseOnClick = false;
         if (!webViewController.startHidden)
         {
             Debug.LogWarning("[StageResultModal] '" + name + "': turn on Start Hidden on the WebViewController, " +

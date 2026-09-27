@@ -19,6 +19,7 @@
  */
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -218,6 +219,38 @@ public class WebViewController : MonoBehaviour
     /// <summary>True while the webview has keyboard focus (last click landed inside it).</summary>
     public bool HasFocus { get { return webViewObject != null && webViewObject.HasFocus; } }
 
+    // ---- Draw order ---------------------------------------------------------------------
+    //
+    // Pages are not uGUI elements: WebViewObject blits its bitmap in OnGUI, so Canvas sorting
+    // and SetAsLastSibling can't order them. With every page on the same GUI.depth, whichever
+    // OnGUI runs last wins, which is incidental scene order. Clicking a page therefore raises
+    // it explicitly here: the clicked page takes focusedDrawOrder and the rest fall back to
+    // normalDrawOrder (lower depth draws on top).
+
+    [Header("Draw order (desktop)")]
+    [Tooltip("Clicking this page brings it in front of the other webviews. Turn off for pages " +
+             "with a fixed layer, e.g. the stage result popup.")]
+    public bool raiseOnClick = true;
+    [Tooltip("Depth while another webview holds focus.")]
+    public int normalDrawOrder = 0;
+    [Tooltip("Depth while this page is the one last clicked. Lower draws on top; keep it above " +
+             "(greater than) the stage result popup's -100 so the popup still covers everything.")]
+    public int focusedDrawOrder = -50;
+
+    private static readonly List<WebViewController> raisable = new List<WebViewController>();
+    private bool wasFocused;
+
+    /// <summary>Draws this page in front of every other click-raisable webview.</summary>
+    public void BringToFront()
+    {
+        if (!raiseOnClick) return;
+        foreach (var other in raisable)
+        {
+            if (other != null && other != this) other.SetDrawOrder(other.normalDrawOrder);
+        }
+        SetDrawOrder(focusedDrawOrder);
+    }
+
     /// <summary>Runs JavaScript in the page. Ignored until the first page load completes.</summary>
     public void EvaluateJS(string js)
     {
@@ -359,12 +392,26 @@ public class WebViewController : MonoBehaviour
         return "file://" + normalised.Replace(" ", "%20");
     }
 
+    private void OnEnable()
+    {
+        if (!raisable.Contains(this)) raisable.Add(this);
+    }
+
     private void OnDisable()
     {
+        raisable.Remove(this);
         if (_loadCoroutine != null)
         {
             StopCoroutine(_loadCoroutine);
         }
+    }
+
+    private void Update()
+    {
+        // WebViewObject sets hasFocus on mouse-down inside its rect, so a fresh focus is a click.
+        bool focused = HasFocus;
+        if (focused && !wasFocused) BringToFront();
+        wasFocused = focused;
     }
 
     private void LateUpdate()

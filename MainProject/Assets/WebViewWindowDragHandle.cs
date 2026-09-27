@@ -18,11 +18,21 @@ public class WebViewWindowDragHandle : MonoBehaviour, IBeginDragHandler, IDragHa
     /// <summary>Raised while dragging so the owner can clamp and re-apply margins.</summary>
     public System.Action onMoved;
 
+    /// <summary>
+    /// Raised when a drag starts, so the owner can raise the window - both the uGUI chrome and
+    /// the page's webview draw order. Falls back to sibling order when left unset.
+    /// </summary>
+    public System.Action onBringToFront;
+
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // Bring the window in front of any other UI on the same canvas.
-        if (target != null)
+        if (onBringToFront != null)
         {
+            onBringToFront();
+        }
+        else if (target != null)
+        {
+            // Bring the window in front of any other UI on the same canvas.
             target.SetAsLastSibling();
         }
     }

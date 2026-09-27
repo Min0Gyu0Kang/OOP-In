@@ -95,6 +95,7 @@ public class WebViewWindow : MonoBehaviour
     Vector2 savedSize;
     Vector2 resizeStartPosition;
     Vector2 resizeStartSize;
+    WebViewController drawOrderController;
     bool webViewVisible;
     bool hasBeenOpened;
     bool marginsValid;
@@ -228,6 +229,10 @@ public class WebViewWindow : MonoBehaviour
         {
             windowRoot.SetAsLastSibling();
         }
+        // The chrome above is uGUI, but the page itself is an OnGUI blit: it only moves
+        // forward through the webview draw order.
+        if (drawOrderController == null) drawOrderController = GetComponent<WebViewController>();
+        if (drawOrderController != null) drawOrderController.BringToFront();
     }
 
     void SetState(WindowState next)
@@ -533,6 +538,7 @@ public class WebViewWindow : MonoBehaviour
         drag.target = windowRoot;
         drag.canvas = targetCanvas;
         drag.onMoved = OnWindowDragged;
+        drag.onBringToFront = BringToFront;
 
         RectTransform titleRect = NewRect("Title", header);
         titleRect.anchorMin = Vector2.zero;

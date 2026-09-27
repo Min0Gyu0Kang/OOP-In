@@ -75,6 +75,30 @@ public class WebViewObject : MonoBehaviour
     float mMarginRightComputed;
     float mMarginBottomComputed;
     bool mMarginRelativeComputed;
+
+    /// <summary>
+    /// Desktop draw order among webviews (GUI.depth): lower values are drawn on top. A modal
+    /// uses a negative value so it covers the other panels. Ignored off desktop, where each
+    /// webview is a real OS view, but declared everywhere so callers need no platform guard.
+    /// </summary>
+    [Tooltip("Desktop draw order: lower values are drawn on top of other webviews.")]
+    public int guiDepth = 0;
+
+    /// <summary>
+    /// True after a click inside the webview's rect, until a click outside it. Desktop only:
+    /// elsewhere the OS view owns focus, and this stays false.
+    /// </summary>
+    public bool HasFocus
+    {
+        get
+        {
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            return hasFocus;
+#else
+            return false;
+#endif
+        }
+    }
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
     public GameObject canvas;
     int mScreenWidthComputed;
@@ -86,15 +110,6 @@ public class WebViewObject : MonoBehaviour
     byte[] textureDataBuffer;
     string inputString = "";
     bool hasFocus;
-    /// <summary>True after a click inside the webview's rect, until a click outside it.</summary>
-    public bool HasFocus { get { return hasFocus; } }
-
-    /// <summary>
-    /// Desktop draw order among webviews (GUI.depth): lower values are drawn on top. A modal
-    /// uses a negative value so it covers the other panels.
-    /// </summary>
-    [Tooltip("Desktop draw order: lower values are drawn on top of other webviews.")]
-    public int guiDepth = 0;
 #elif UNITY_IPHONE
     IntPtr webView;
 #elif UNITY_ANDROID
